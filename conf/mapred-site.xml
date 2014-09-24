@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<configuration>
+  <property>
+    <name>mapred.job.tracker</name>
+    <value>master.hadoop.gndpig.com:8021</value>
+    <final>true</final>
+  </property>
+
+  <property>
+    <name>mapred.local.dir</name>
+    <value>/home/services/hadoop/mapred/local</value>
+    <final>true</final>
+  </property>
+
+  <property>
+    <name>mapred.tasktracker.map.tasks.maximum</name>
+    <value>2</value>
+    <final>true</final>
+  </property>
+
+  <property>
+    <name>mapred.tasktracker.reduce.tasks.maximum</name>
+    <value>2</value>
+    <final>true</final>
+  </property>
+
+  <property>
+    <name>keep.task.files.pattern</name>
+    <value>.*</value>
+  </property>
+
+  <property>
+    <name>mapred.child.java.opts</name>
+    <value>-Xmx400m</value>
+  </property>
+</configuration>
