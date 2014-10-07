@@ -772,6 +772,7 @@ public class JobInProgress {
 
     // Calculate the minimum number of maps to be complete before 
     // we should start scheduling reduces
+    // Reduce タスクのスケジュールを始めるまでの完了させる最少の Map タスク
     completedMapsForReduceSlowstart = 
       (int)Math.ceil(
           (conf.getFloat("mapred.reduce.slowstart.completed.maps", 
