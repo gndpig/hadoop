@@ -21,16 +21,23 @@ package org.apache.hadoop.mapred.lib;
 import org.apache.hadoop.mapred.Partitioner;
 import org.apache.hadoop.mapred.JobConf;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 /** Partition keys by their {@link Object#hashCode()}. 
  */
 public class HashPartitioner<K2, V2> implements Partitioner<K2, V2> {
+
+  public static final Log LOG = LogFactory.getLog(HashPartitioner.class);
 
   public void configure(JobConf job) {}
 
   /** Use {@link Object#hashCode()} to partition. */
   public int getPartition(K2 key, V2 value,
                           int numReduceTasks) {
-    return (key.hashCode() & Integer.MAX_VALUE) % numReduceTasks;
+    int part =  (key.hashCode() & Integer.MAX_VALUE) % numReduceTasks;
+    LOG.info("partition part : " + part);
+    return part;
   }
 
 }
