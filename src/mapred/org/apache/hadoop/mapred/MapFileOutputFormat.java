@@ -35,9 +35,14 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.util.Progressable;
 import org.apache.hadoop.util.ReflectionUtils;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 /** An {@link OutputFormat} that writes {@link MapFile}s. */
 public class MapFileOutputFormat 
 extends FileOutputFormat<WritableComparable, Writable> {
+
+  public static final Log LOG = LogFactory.getLog(MapFileOutputFormat.class);
 
   public RecordWriter<WritableComparable, Writable> getRecordWriter(FileSystem ignored, JobConf job,
                                       String name, Progressable progress)
@@ -102,6 +107,7 @@ extends FileOutputFormat<WritableComparable, Writable> {
                                   K key,
                                   V value) throws IOException {
     int part = partitioner.getPartition(key, value, readers.length);
+    LOG.info("Partition part : " + part + " value "); 
     return readers[part].get(key, value);
   }
 
