@@ -427,6 +427,7 @@ class MapTask extends Task {
       ReflectionUtils.newInstance(job.getMapRunnerClass(), job);
 
     try {
+      // Map 処理を実行する
       runner.run(in, new OldOutputCollector(collector, conf), reporter);
       collector.flush();
       

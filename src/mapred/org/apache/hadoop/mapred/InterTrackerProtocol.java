@@ -109,6 +109,15 @@ interface InterTrackerProtocol extends VersionedProtocol {
                               short responseId)
     throws IOException;
   
+  HeartbeatResponse heartbeat(TaskTrackerStatus status, 
+          boolean restarted, 
+          boolean initialContact,
+          boolean acceptNewTasks,
+          short responseId,
+          String name)
+  throws IOException;
+
+  
   /**
    * The task tracker calls this once, to discern where it can find
    * files referred to by the JobTracker

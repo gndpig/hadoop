@@ -3071,6 +3071,21 @@ public class JobTracker implements MRConstants, InterTrackerProtocol,
   }
   
   /**
+   * Test heartbeat program
+   */
+  public synchronized HeartbeatResponse heartbeat(TaskTrackerStatus status, 
+          boolean restarted,
+          boolean initialContact,
+          boolean acceptNewTasks, 
+          short responseId,
+          String name)
+  throws IOException {
+	  LOG.info("Test heartbeat name = " + name);
+	  return heartbeat(status, restarted, initialContact, acceptNewTasks, responseId);
+  }
+  
+  
+  /**
    * Calculates next heartbeat interval using cluster size.
    * Heartbeat interval is incremented by 1 second for every 100 nodes by default. 
    * @return next heartbeat interval.
