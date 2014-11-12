@@ -41,7 +41,7 @@ import java.io.IOException;
  * @see JobID
  * @see TaskID
  */
-public class TaskAttemptID extends org.apache.hadoop.mapreduce.TaskAttemptID implements Cloneable {
+public class TaskAttemptID extends org.apache.hadoop.mapreduce.TaskAttemptID {
   
   /**
    * Constructs a TaskAttemptID object from given {@link TaskID}.  

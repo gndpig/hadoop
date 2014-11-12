@@ -33,7 +33,7 @@ import org.apache.hadoop.io.WritableComparable;
  * @see TaskID
  * @see TaskAttemptID
  */
-public abstract class ID implements WritableComparable<ID> {
+public abstract class ID implements WritableComparable<ID>, Cloneable {
   protected static final char SEPARATOR = '_';
   protected int id;
 
