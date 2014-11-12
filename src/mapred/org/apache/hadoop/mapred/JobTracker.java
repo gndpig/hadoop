@@ -2932,18 +2932,18 @@ public class JobTracker implements MRConstants, InterTrackerProtocol,
                                                   boolean acceptNewTasks, 
                                                   short responseId) 
     throws IOException {
-	/*
     List<TaskStatus> list = status.getTaskReports();
     for(TaskStatus taskStatus : list) {
     	if (taskStatus.getIsMap()) {
     		LOG.info("Task = " + taskStatus.getMapTask());
     	}
     }
-    */
+	  /*
 	  List<Task> dataTasks = status.getTasks();
 	  for (Task task : dataTasks) {
 		  LOG.info("Task = " + task);
 	  }
+	  */
     if (LOG.isDebugEnabled()) {
       LOG.debug("Got heartbeat from: " + status.getTrackerName() + 
                 " (restarted: " + restarted + 

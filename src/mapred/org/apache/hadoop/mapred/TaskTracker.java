@@ -1960,17 +1960,18 @@ public class TaskTracker implements MRConstants, TaskUmbilicalProtocol,
     //
     if (status == null) {
       synchronized (this) {
-    	Map<TaskStatus, Task> taskStatus = cloneAndResetRunningTaskStatusesAndTask(sendCounters);
+//    	Map<TaskStatus, Task> taskStatus = cloneAndResetRunningTaskStatusesAndTask(sendCounters);
         status = new TaskTrackerStatus(taskTrackerName, localHostname, 
                                        httpPort, 
                                        //cloneAndResetRunningTaskStatuses(
                                          //sendCounters),
-                                       new ArrayList<TaskStatus>(taskStatus.keySet()),
+                                       cloneAndResetRunningTaskStatusesAndTask(sendCounters),
+                                       //new ArrayList<TaskStatus>(taskStatus.keySet()),
                                        taskFailures,
                                        localStorage.numFailures(),
                                        maxMapSlots,
-                                       maxReduceSlots,
-                                       new ArrayList<Task>(taskStatus.values())); 
+                                       maxReduceSlots);
+                                       //new ArrayList<Task>(taskStatus.values())); 
       }
     } else {
       LOG.info("Resending 'status' to '" + jobTrackAddr.getHostName() +
@@ -3871,7 +3872,7 @@ public class TaskTracker implements MRConstants, TaskUmbilicalProtocol,
     return result;
   }
   
-  private synchronized List<TaskStatus> cloneAndResetRunningTaskStatusesAndTask1(
+  private synchronized List<TaskStatus> cloneAndResetRunningTaskStatusesAndTask(
 		  boolean sendCounters) {
 	  List<TaskStatus> result = new ArrayList<TaskStatus>(runningTasks.size());
 	  for(TaskInProgress tip: runningTasks.values()) {
@@ -3896,7 +3897,7 @@ public class TaskTracker implements MRConstants, TaskUmbilicalProtocol,
 	  return result;
   }
   
-  private synchronized Map<TaskStatus, Task> cloneAndResetRunningTaskStatusesAndTask(
+  private synchronized Map<TaskStatus, Task> cloneAndResetRunningTaskStatusesAndTask2(
 		  boolean sendCounters) {
 	  Map<TaskStatus, Task> result = new TreeMap<TaskStatus, Task>();
 	  for(TaskInProgress tip: runningTasks.values()) {
