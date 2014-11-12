@@ -41,7 +41,7 @@ import java.io.IOException;
  * @see JobID
  * @see TaskID
  */
-public class TaskAttemptID extends org.apache.hadoop.mapreduce.TaskAttemptID {
+public class TaskAttemptID extends org.apache.hadoop.mapreduce.TaskAttemptID implements Cloneable {
   
   /**
    * Constructs a TaskAttemptID object from given {@link TaskID}.  
@@ -144,5 +144,15 @@ public class TaskAttemptID extends org.apache.hadoop.mapreduce.TaskAttemptID {
         .append(SEPARATOR)
         .append(attemptId != null ? attemptId : "[0-9]*");
     return builder;
+  }
+  
+  @Override
+  public Object clone() {
+    try {
+      return super.clone();
+    } catch (CloneNotSupportedException cnse) {
+      // Shouldn't happen since we do implement Clonable
+      throw new InternalError(cnse.toString());
+    }
   }
 }

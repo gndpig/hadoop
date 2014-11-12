@@ -1511,7 +1511,9 @@ abstract public class Task implements Writable, Configurable, Cloneable {
   @Override
   public Object clone() {
     try {
-      return super.clone();
+      Task clone = (Task)super.clone();
+      clone.taskId = (TaskAttemptID)this.taskId.clone();
+      return clone;
     } catch (CloneNotSupportedException cnse) {
       // Shouldn't happen since we do implement Clonable
       throw new InternalError(cnse.toString());
