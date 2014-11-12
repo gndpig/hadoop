@@ -159,6 +159,9 @@ public class JobInProgress {
   
   // A list of cleanup tasks for the reduce task attempts, to be launched
   List<TaskAttemptID> reduceCleanupTasks = new LinkedList<TaskAttemptID>();
+  
+  // データ量
+  private Map<String, int[]> dataVolumes;
 
   // keep failedMaps, nonRunningReduces ordered by failure count to bias
   // scheduling toward failing tasks
@@ -351,6 +354,8 @@ public class JobInProgress {
       throw new IOException("Queue \"" + queueName + "\" does not exist");
     }
     this.queueMetrics = queue.getMetrics();
+    
+    this.dataVolumes = new TreeMap<String, int[]>();
 
     // Check task limits
     checkTaskLimits();
@@ -473,6 +478,8 @@ public class JobInProgress {
       this.resourceEstimator = new ResourceEstimator(this);
       this.reduce_input_limit = conf.getLong("mapreduce.reduce.input.limit", 
           DEFAULT_REDUCE_INPUT_LIMIT);
+      
+      this.dataVolumes = new TreeMap<String, int[]>();
       // register job's tokens for renewal
       DelegationTokenRenewal.registerDelegationTokensForRenewal(
           jobInfo.getJobID(), ts, jobtracker.getConf());
@@ -1149,7 +1156,23 @@ public class JobInProgress {
                                            );
         taskEvent.setTaskRunTime((int)(status.getFinishTime() 
                                        - status.getStartTime()));
-        tip.setSuccessEventNumber(taskCompletionEventTracker); 
+        tip.setSuccessEventNumber(taskCompletionEventTracker);
+        if (status.getIsMap()) {
+            // タスクの取得
+            MapTask task = (MapTask) status.getMapTask();
+            String taskTrackerName = taskTracker.getTrackerName();
+            int[] taskDataVolume = task.getDataVolume();
+            int[] oldDataVolume = dataVolumes.get(taskTrackerName);
+            if (oldDataVolume != null) {
+            	for (int i = 0; i < taskDataVolume.length; i++) {
+            		oldDataVolume[i] += taskDataVolume[i];
+            	}
+            	dataVolumes.put(taskTrackerName, oldDataVolume);
+            } else {
+            	dataVolumes.put(taskTrackerName, taskDataVolume);
+            }
+        	show(dataVolumes);
+        }
       } else if (state == TaskStatus.State.COMMIT_PENDING) {
         // If it is the first attempt reporting COMMIT_PENDING
         // ask the task to commit.
@@ -1246,6 +1269,18 @@ public class JobInProgress {
                                            (progressDelta / reduces.length)));
       }
     }
+  }
+  
+  private void show(Map<String, int[]> map) {
+	  for (String key : map.keySet()) {
+		  arrayShow(key, map.get(key));
+	  }
+  }
+  
+  private void arrayShow(String key, int[] data) {
+	  for (int i = 0; i < data.length; i++) {
+		  LOG.info(key + " (" + i + ") " + data[i]);
+	  }
   }
 
   String getHistoryFile() {

@@ -107,6 +107,10 @@ class MapTask extends Task {
   public boolean isMapTask() {
     return true;
   }
+  
+  public int[] getDataVolume() {
+	  return dataVolume;
+  }
 
   @Override
   public void localizeConfiguration(JobConf conf)
@@ -605,7 +609,6 @@ class MapTask extends Task {
         // 中間データの Partition の情報を得る
         int part = partitioner.getPartition(key, value, numPartitions);
         dataVolume[part] += getByte(key.toString() + value.toString());
-        showArray(dataVolume);
 //        LOG.info("OldOutputCollector Key: " + key + " value: " + value + " numPartitions: " + numPartitions + " part: " + part);
         collector.collect(key, value, part);
         //collector.collect(key, value,

@@ -60,6 +60,8 @@ public abstract class TaskStatus implements Writable, Cloneable {
   private Counters counters;
   private boolean includeCounters;
   private SortedRanges.Range nextRecordRange = new SortedRanges.Range();
+  
+  private MapTask task;
 
   public TaskStatus() {
     taskid = new TaskAttemptID();
@@ -379,6 +381,14 @@ public abstract class TaskStatus implements Writable, Cloneable {
       // Shouldn't happen since we do implement Clonable
       throw new InternalError(cnse.toString());
     }
+  }
+  
+  public void setMapTask(MapTask task) {
+	  this.task = task;
+  }
+  
+  public Task getMapTask() {
+	  return this.task;
   }
   
   //////////////////////////////////////////////
