@@ -2026,9 +2026,9 @@ public class TaskTracker implements MRConstants, TaskUmbilicalProtocol,
       }
     }
     List<TaskStatus> list = status.getTaskReports();
-    for(TaskStatus status : list) {
-    	if (status.getIsMap()) {
-    		LOG.info("Task = " + status.getMapTask());
+    for(TaskStatus TaskStatus : list) {
+    	if (TaskStatus.getIsMap()) {
+    		LOG.info("TaskStatus = " + TaskStatus.getMapTask());
     	}
     }
     //
