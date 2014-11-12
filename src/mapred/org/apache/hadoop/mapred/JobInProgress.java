@@ -1158,12 +1158,14 @@ public class JobInProgress {
                                        - status.getStartTime()));
         tip.setSuccessEventNumber(taskCompletionEventTracker);
         if (status.getIsMap()) {
+        	/*
         	
             // タスクの取得
             MapTask task = (MapTask) status.getMapTask();
             String taskTrackerName = taskTracker.getTrackerName();
             LOG.info("task = " + task);
             LOG.info("taskTrackerName = " + taskTrackerName);
+            */
             /*
             if (task != null) {
                 int[] taskDataVolume = task.getDataVolume();            	
