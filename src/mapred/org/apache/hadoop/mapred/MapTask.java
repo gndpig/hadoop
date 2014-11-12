@@ -72,7 +72,7 @@ import org.apache.hadoop.util.ReflectionUtils;
 import org.apache.hadoop.util.StringUtils;
 
 /** A Map task. */
-class MapTask extends Task {
+class MapTask extends Task implements Cloneable {
   /**
    * The size of each record in the index file for the map-outputs.
    */
@@ -1842,6 +1842,16 @@ class MapTask extends Task {
         // Ignore
         LOG.info("Ignoring exception during close for " + c, ie);
       }
+    }
+  }
+  
+  @Override
+  public Object clone() {
+    try {
+      return super.clone();
+    } catch (CloneNotSupportedException cnse) {
+      // Shouldn't happen since we do implement Clonable
+      throw new InternalError(cnse.toString());
     }
   }
 
