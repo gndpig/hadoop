@@ -170,5 +170,12 @@ public class TaskAttemptID extends org.apache.hadoop.mapred.ID {
     throw new IllegalArgumentException("TaskAttemptId string : " + str 
         + " is not properly formed");
   }
+  
+  @Override
+  public Object clone() throws CloneNotSupportedException {
+	  TaskAttemptID clone = (TaskAttemptID)super.clone();
+	  clone.taskId = (TaskID)this.taskId.clone();
+	  return clone;
+  }
 
 }

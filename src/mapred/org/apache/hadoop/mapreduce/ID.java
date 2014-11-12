@@ -87,4 +87,9 @@ public abstract class ID implements WritableComparable<ID>, Cloneable {
     out.writeInt(id);
   }
   
+  @Override
+  public Object clone() throws CloneNotSupportedException {
+	  return super.clone();
+  }
+  
 }
