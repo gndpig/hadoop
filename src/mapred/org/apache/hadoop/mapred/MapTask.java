@@ -159,6 +159,12 @@ class MapTask extends Task {
       splitMetaInfo.readFields(in);
     }
   }
+  
+  @Override
+  public void setConf(Configuration conf) {
+	  super.setConf(conf);
+	  this.dataVolume = new int[this.conf.getNumReduceTasks()];
+  }
 
   /**
    * This class wraps the user's record reader to update the counters and
@@ -598,8 +604,8 @@ class MapTask extends Task {
         // 古い API を使用した場合
         // 中間データの Partition の情報を得る
         int part = partitioner.getPartition(key, value, numPartitions);
-        //dataVolume[part] += getByte(key.toString() + value.toString());
-        //showArray(dataVolume);
+        dataVolume[part] += getByte(key.toString() + value.toString());
+        showArray(dataVolume);
 //        LOG.info("OldOutputCollector Key: " + key + " value: " + value + " numPartitions: " + numPartitions + " part: " + part);
         collector.collect(key, value, part);
         //collector.collect(key, value,
