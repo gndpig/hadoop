@@ -31,6 +31,7 @@ import java.io.DataOutput;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
@@ -81,6 +82,9 @@ class MapTask extends Task {
   private final static int APPROX_HEADER_LENGTH = 150;
 
   private static final Log LOG = LogFactory.getLog(MapTask.class.getName());
+  
+  // パーティション毎のデータ量
+  private int[] dataVolume;
 
   {   // set phase for this task
     setPhase(TaskStatus.Phase.MAP); 
@@ -88,6 +92,7 @@ class MapTask extends Task {
 
   public MapTask() {
     super();
+    this.dataVolume = new int[conf.getNumReduceTasks()];
   }
 
   public MapTask(String jobFile, TaskAttemptID taskId, 
@@ -95,6 +100,7 @@ class MapTask extends Task {
                  int numSlotsRequired) {
     super(jobFile, taskId, partition, numSlotsRequired);
     this.splitMetaInfo = splitIndex;
+    this.dataVolume = new int[conf.getNumReduceTasks()];
   }
 
   @Override
@@ -562,7 +568,7 @@ class MapTask extends Task {
    * the configured partitioner should not be called. It's common for
    * partitioners to compute a result mod numReduces, which causes a div0 error
    */
-  private static class OldOutputCollector<K,V> implements OutputCollector<K,V> {
+  private class OldOutputCollector<K,V> implements OutputCollector<K,V> {
     private final Partitioner<K,V> partitioner;
     private final MapOutputCollector<K,V> collector;
     private final int numPartitions;
@@ -592,7 +598,9 @@ class MapTask extends Task {
         // 古い API を使用した場合
         // 中間データの Partition の情報を得る
         int part = partitioner.getPartition(key, value, numPartitions);
-        LOG.info("OldOutputCollector Key: " + key + " value: " + value + " numPartitions: " + numPartitions + " part: " + part);
+        dataVolume[part] += getByte(key.toString() + value.toString());
+        showArray(dataVolume);
+//        LOG.info("OldOutputCollector Key: " + key + " value: " + value + " numPartitions: " + numPartitions + " part: " + part);
         collector.collect(key, value, part);
         //collector.collect(key, value,
         //                  partitioner.getPartition(key, value, numPartitions));
@@ -600,6 +608,25 @@ class MapTask extends Task {
         Thread.currentThread().interrupt();
         throw new IOException("interrupt exception", ie);
       }
+    }
+    
+    private int getByte(String str) {
+    	if (str == null) {
+    		return 0;
+    	}
+    	int ret = 0;
+    	try {
+    		ret = str.getBytes("UTF-8").length;
+    	} catch (UnsupportedEncodingException e) {
+    		ret = 0;
+    	}
+    	return ret;
+    }
+    
+    private void showArray(int[] data) {
+    	for (int i = 0; i < data.length; i++) {
+    		LOG.info("dataVolume (" + i + ") = " + data[i]);
+    	}
     }
   }
 
