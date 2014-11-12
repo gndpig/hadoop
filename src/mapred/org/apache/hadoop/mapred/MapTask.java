@@ -92,7 +92,7 @@ class MapTask extends Task {
 
   public MapTask() {
     super();
-    this.dataVolume = new int[conf.getNumReduceTasks()];
+    //this.dataVolume = new int[conf.getNumReduceTasks()];
   }
 
   public MapTask(String jobFile, TaskAttemptID taskId, 
@@ -100,7 +100,7 @@ class MapTask extends Task {
                  int numSlotsRequired) {
     super(jobFile, taskId, partition, numSlotsRequired);
     this.splitMetaInfo = splitIndex;
-    this.dataVolume = new int[conf.getNumReduceTasks()];
+    //this.dataVolume = new int[conf.getNumReduceTasks()];
   }
 
   @Override
