@@ -2028,7 +2028,7 @@ public class TaskTracker implements MRConstants, TaskUmbilicalProtocol,
     List<TaskStatus> list = status.getTaskReports();
     for(TaskStatus TaskStatus : list) {
     	if (TaskStatus.getIsMap()) {
-    		LOG.info("TaskStatus = " + TaskStatus.getMapTask());
+    		LOG.info("TaskStatus1 = " + TaskStatus.getMapTask());
     	}
     }
     //
@@ -2055,6 +2055,9 @@ public class TaskTracker implements MRConstants, TaskUmbilicalProtocol,
       
     synchronized (this) {
       for (TaskStatus taskStatus : status.getTaskReports()) {
+      	if (taskStatus.getIsMap()) {
+    		LOG.info("TaskStatus2 = " + taskStatus.getMapTask());
+    	}
         if (taskStatus.getRunState() != TaskStatus.State.RUNNING &&
             taskStatus.getRunState() != TaskStatus.State.UNASSIGNED &&
             taskStatus.getRunState() != TaskStatus.State.COMMIT_PENDING &&
