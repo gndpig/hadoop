@@ -31,10 +31,13 @@ import java.io.DataOutput;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -81,6 +84,10 @@ class MapTask extends Task {
   private final static int APPROX_HEADER_LENGTH = 150;
 
   private static final Log LOG = LogFactory.getLog(MapTask.class.getName());
+  
+  // パーティション毎のデータ転送量
+  private int[] dataVolume;
+  //private Map<Integer, Integer> dataVolume;
 
   {   // set phase for this task
     setPhase(TaskStatus.Phase.MAP); 
@@ -88,6 +95,8 @@ class MapTask extends Task {
 
   public MapTask() {
     super();
+    this.dataVolume = new int[conf.getNumReduceTasks()];
+    //this.dataVolume = new HashMap<Integer, Integer>();
   }
 
   public MapTask(String jobFile, TaskAttemptID taskId, 
@@ -95,6 +104,8 @@ class MapTask extends Task {
                  int numSlotsRequired) {
     super(jobFile, taskId, partition, numSlotsRequired);
     this.splitMetaInfo = splitIndex;
+    this.dataVolume = new int[conf.getNumReduceTasks()];
+    //this.dataVolume = new HashMap<Integer, Integer>();
   }
 
   @Override
@@ -153,6 +164,18 @@ class MapTask extends Task {
       splitMetaInfo.readFields(in);
     }
   }
+  
+  // dataVolume (データ量) を返す
+  public int[] getDataVolume() {
+	  return dataVolume;
+  }
+  
+  /*
+  public Map<Integer, Integer> getDataVolume() {
+	  return dataVolume;
+  }
+  */
+  
 
   /**
    * This class wraps the user's record reader to update the counters and
@@ -562,7 +585,7 @@ class MapTask extends Task {
    * the configured partitioner should not be called. It's common for
    * partitioners to compute a result mod numReduces, which causes a div0 error
    */
-  private static class OldOutputCollector<K,V> implements OutputCollector<K,V> {
+  private class OldOutputCollector<K,V> implements OutputCollector<K,V> {
     private final Partitioner<K,V> partitioner;
     private final MapOutputCollector<K,V> collector;
     private final int numPartitions;
@@ -592,7 +615,16 @@ class MapTask extends Task {
         // 古い API を使用した場合
         // 中間データの Partition の情報を得る
         int part = partitioner.getPartition(key, value, numPartitions);
-        LOG.info("OldOutputCollector Key: " + key + " value: " + value + " numPartitions: " + numPartitions + " part: " + part);
+        //LOG.info("OldOutputCollector Key: " + key + " value: " + value + " numPartitions: " + numPartitions + " part: " + part);
+        // dataVolume に partition 毎にデータ量を格納する
+        dataVolume[part] += getByte(key.toString() + value.toString());
+        /*
+        if (dataVolume.containsKey(part)) {
+            dataVolume.put(part, dataVolume.get(part) + getByte(key.toString() + value.toString()));        	
+        } else {
+        	dataVolume.put(part, dataVolume.get(part));
+        }
+        */
         collector.collect(key, value, part);
         //collector.collect(key, value,
         //                  partitioner.getPartition(key, value, numPartitions));
@@ -601,6 +633,20 @@ class MapTask extends Task {
         throw new IOException("interrupt exception", ie);
       }
     }
+    
+    // UTF-8 での文字列のバイト数を取得
+	public int getByte(String value) {
+		if (value == null || value.length() == 0) {
+			return 0;
+		}
+		int ret = 0;
+		try {
+			ret = value.getBytes("UTF-8").length;
+		} catch (UnsupportedEncodingException e) {
+			ret = 0;
+		}
+		return ret;
+	}   
   }
 
   private class NewDirectOutputCollector<K,V>

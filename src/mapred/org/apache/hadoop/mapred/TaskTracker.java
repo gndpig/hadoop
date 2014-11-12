@@ -1960,6 +1960,7 @@ public class TaskTracker implements MRConstants, TaskUmbilicalProtocol,
     //
     if (status == null) {
       synchronized (this) {
+    	/*
         status = new TaskTrackerStatus(taskTrackerName, localHostname, 
                                        httpPort, 
                                        cloneAndResetRunningTaskStatuses(
@@ -1967,7 +1968,17 @@ public class TaskTracker implements MRConstants, TaskUmbilicalProtocol,
                                        taskFailures,
                                        localStorage.numFailures(),
                                        maxMapSlots,
-                                       maxReduceSlots); 
+                                       maxReduceSlots);
+                                       */ 
+    	  HashMap<TaskStatus, Task> list = (HashMap<TaskStatus, Task>) improveCloneAndResetRunningTaskStatuses(sendCounters);
+	      status = new TaskTrackerStatus(taskTrackerName, localHostname, 
+	              httpPort, 
+	              new ArrayList<TaskStatus>(list.keySet()),
+	              new ArrayList<Task>(list.values()),
+	              taskFailures,
+	              localStorage.numFailures(),
+	              maxMapSlots,
+	              maxReduceSlots);
       }
     } else {
       LOG.info("Resending 'status' to '" + jobTrackAddr.getHostName() +
@@ -3859,6 +3870,23 @@ public class TaskTracker implements MRConstants, TaskUmbilicalProtocol,
     }
     return result;
   }
+  
+  private synchronized Map<TaskStatus, Task> improveCloneAndResetRunningTaskStatuses(
+          boolean sendCounters) {
+    Map<TaskStatus, Task> result = new HashMap<TaskStatus, Task>(runningTasks.size());
+    for(TaskInProgress tip: runningTasks.values()) {
+      TaskStatus status = tip.getStatus();
+      status.setIncludeCounters(sendCounters);
+      // send counters for finished or failed tasks and commit pending tasks
+      if (status.getRunState() != TaskStatus.State.RUNNING) {
+        status.setIncludeCounters(true);
+      }
+      result.put((TaskStatus)status.clone(), tip.getTask());
+      status.clearStatus();
+    }
+    return result;	  
+  }
+  
   /**
    * Get the list of tasks that will be reported back to the 
    * job tracker in the next heartbeat cycle.

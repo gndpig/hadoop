@@ -4484,6 +4484,7 @@ public class JobTracker implements MRConstants, InterTrackerProtocol,
         // the changes should not get reflected in TaskTrackerStatus.
         // An old TaskTrackerStatus is used later in countMapTasks, etc.
         job.updateTaskStatus(tip, (TaskStatus)report.clone());
+        
         JobStatus newStatus = (JobStatus)job.getStatus().clone();
         
         // Update the listeners if an incomplete job completes
@@ -4520,6 +4521,104 @@ public class JobTracker implements MRConstants, InterTrackerProtocol,
       }
     }
   }
+  
+  void updateTaskStatusesAndTask(TaskTrackerStatus status, Task task) {
+	    String trackerName = status.getTrackerName();
+	    for (TaskStatus report : status.getTaskReports()) {
+	      report.setTaskTracker(trackerName);
+	      TaskAttemptID taskId = report.getTaskID();
+	      
+	      // don't expire the task if it is not unassigned
+	      if (report.getRunState() != TaskStatus.State.UNASSIGNED) {
+	        expireLaunchingTasks.removeTask(taskId);
+	      }
+	      
+	      JobInProgress job = getJob(taskId.getJobID());
+	      if (job == null) {
+	        // if job is not there in the cleanup list ... add it
+	        synchronized (trackerToJobsToCleanup) {
+	          Set<JobID> jobs = trackerToJobsToCleanup.get(trackerName);
+	          if (jobs == null) {
+	            jobs = new HashSet<JobID>();
+	            trackerToJobsToCleanup.put(trackerName, jobs);
+	          }
+	          jobs.add(taskId.getJobID());
+	        }
+	        continue;
+	      }
+	      
+	      if (!job.inited()) {
+	        // if job is not yet initialized ... kill the attempt
+	        synchronized (trackerToTasksToCleanup) {
+	          Set<TaskAttemptID> tasks = trackerToTasksToCleanup.get(trackerName);
+	          if (tasks == null) {
+	            tasks = new HashSet<TaskAttemptID>();
+	            trackerToTasksToCleanup.put(trackerName, tasks);
+	          }
+	          tasks.add(taskId);
+	        }
+	        continue;
+	      }
+
+	      TaskInProgress tip = taskidToTIPMap.get(taskId);
+	      // Check if the tip is known to the jobtracker. In case of a restarted
+	      // jt, some tasks might join in later
+	      if (tip != null || hasRestarted()) {
+	        if (tip == null) {
+	          tip = job.getTaskInProgress(taskId.getTaskID());
+	          job.addRunningTaskToTIP(tip, taskId, status, false);
+	        }
+	        
+	        // Update the job and inform the listeners if necessary
+	        JobStatus prevStatus = (JobStatus)job.getStatus().clone();
+	        // Clone TaskStatus object here, because JobInProgress
+	        // or TaskInProgress can modify this object and
+	        // the changes should not get reflected in TaskTrackerStatus.
+	        // An old TaskTrackerStatus is used later in countMapTasks, etc.
+	        if (task.isMapOrReduce()) {
+		        job.updateTaskStatusAndTask(tip, (TaskStatus)report.clone(), (MapTask)task);
+	        	
+	        } else {
+		        job.updateTaskStatus(tip, (TaskStatus)report.clone());
+	        	
+	        }
+	        
+	        JobStatus newStatus = (JobStatus)job.getStatus().clone();
+	        
+	        // Update the listeners if an incomplete job completes
+	        if (prevStatus.getRunState() != newStatus.getRunState()) {
+	          JobStatusChangeEvent event = 
+	            new JobStatusChangeEvent(job, EventType.RUN_STATE_CHANGED, 
+	                                     prevStatus, newStatus);
+	          updateJobInProgressListeners(event);
+	        }
+	      } else {
+	        LOG.info("Serious problem.  While updating status, cannot find taskid " 
+	                 + report.getTaskID());
+	      }
+	      
+	      // Process 'failed fetch' notifications 
+	      List<TaskAttemptID> failedFetchMaps = report.getFetchFailedMaps();
+	      if (failedFetchMaps != null) {
+	        for (TaskAttemptID mapTaskId : failedFetchMaps) {
+	          TaskInProgress failedFetchMap = taskidToTIPMap.get(mapTaskId);
+	          
+	          if (failedFetchMap != null) {
+	            // Gather information about the map which has to be failed, if need be
+	            String failedFetchTrackerName = getAssignedTracker(mapTaskId);
+	            if (failedFetchTrackerName == null) {
+	              failedFetchTrackerName = "Lost task tracker";
+	            }
+	            failedFetchMap.getJob().fetchFailureNotification(failedFetchMap,
+	                                                             mapTaskId,
+	                                                             failedFetchTrackerName,
+	                                                             taskId,
+	                                                             trackerName);
+	          }
+	        }
+	      }
+	    }
+	  }  
 
   /**
    * We lost the task tracker!  All task-tracker structures have 
