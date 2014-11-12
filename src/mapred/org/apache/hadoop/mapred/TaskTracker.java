@@ -3881,10 +3881,10 @@ public class TaskTracker implements MRConstants, TaskUmbilicalProtocol,
 			  status.setIncludeCounters(true);
 		  }
 		  if (status.getIsMap()) {
-			  TaskStatus newStatus = (TaskStatus) status.clone();
-			  MapTask task = (MapTask) tip.getTask();
-			  newStatus.setMapTask((MapTask)task.clone());
-			  result.add(newStatus);    	  
+			  status.setMapTask((MapTask) tip.getTask());
+//			  TaskStatus newStatus = (TaskStatus) status.clone();
+//			  newStatus.setMapTask((MapTask)((MapTask) tip.getTask()).clone());
+			  result.add((TaskStatus)status.clone());   	  
 		  } else {
 			  result.add((TaskStatus)status.clone());    	  
 		  }
