@@ -1158,11 +1158,13 @@ public class JobInProgress {
                                        - status.getStartTime()));
         tip.setSuccessEventNumber(taskCompletionEventTracker);
         if (status.getIsMap()) {
+        	/*
             // タスクの取得
             MapTask task = (MapTask) status.getMapTask();
             String taskTrackerName = taskTracker.getTrackerName();
             int[] taskDataVolume = task.getDataVolume();
             int[] oldDataVolume = dataVolumes.get(taskTrackerName);
+            
             if (oldDataVolume != null) {
             	for (int i = 0; i < taskDataVolume.length; i++) {
             		oldDataVolume[i] += taskDataVolume[i];
@@ -1172,6 +1174,7 @@ public class JobInProgress {
             	dataVolumes.put(taskTrackerName, taskDataVolume);
             }
         	show(dataVolumes);
+        	*/
         }
       } else if (state == TaskStatus.State.COMMIT_PENDING) {
         // If it is the first attempt reporting COMMIT_PENDING
