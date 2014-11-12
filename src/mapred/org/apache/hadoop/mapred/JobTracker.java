@@ -2936,7 +2936,7 @@ public class JobTracker implements MRConstants, InterTrackerProtocol,
     for(TaskStatus taskStatus : list) {
     	if (taskStatus.getIsMap()) {
     		MapTask task = (MapTask)taskStatus.getMapTask();
-    		LOG.info("Task = " + task);
+    		LOG.info("Task = " + task.test);
     		if (task != null) {
         		int[] dataVolume = task.getDataVolume();
         		LOG.info("dataVolume = " + dataVolume);    			
