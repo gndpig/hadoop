@@ -4483,7 +4483,6 @@ public class JobTracker implements MRConstants, InterTrackerProtocol,
         // or TaskInProgress can modify this object and
         // the changes should not get reflected in TaskTrackerStatus.
         // An old TaskTrackerStatus is used later in countMapTasks, etc.
-//        job.updateTaskStatus(tip, (TaskStatus)report.clone());
         job.updateTaskStatus(tip, (TaskStatus)report.clone());
         JobStatus newStatus = (JobStatus)job.getStatus().clone();
         

@@ -1962,8 +1962,9 @@ public class TaskTracker implements MRConstants, TaskUmbilicalProtocol,
       synchronized (this) {
         status = new TaskTrackerStatus(taskTrackerName, localHostname, 
                                        httpPort, 
-                                       cloneAndResetRunningTaskStatuses(
-                                         sendCounters), 
+                                       //cloneAndResetRunningTaskStatuses(
+                                         //sendCounters),
+                                       cloneAndResetRunningTaskStatusesAndTask(sendCounters),
                                        taskFailures,
                                        localStorage.numFailures(),
                                        maxMapSlots,
