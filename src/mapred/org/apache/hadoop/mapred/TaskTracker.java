@@ -1960,7 +1960,6 @@ public class TaskTracker implements MRConstants, TaskUmbilicalProtocol,
     //
     if (status == null) {
       synchronized (this) {
-    	/*
         status = new TaskTrackerStatus(taskTrackerName, localHostname, 
                                        httpPort, 
                                        cloneAndResetRunningTaskStatuses(
@@ -1969,7 +1968,8 @@ public class TaskTracker implements MRConstants, TaskUmbilicalProtocol,
                                        localStorage.numFailures(),
                                        maxMapSlots,
                                        maxReduceSlots);
-                                       */ 
+                                       
+    	  /*
     	  HashMap<TaskStatus, Task> list = (HashMap<TaskStatus, Task>) improveCloneAndResetRunningTaskStatuses(sendCounters);
 	      status = new TaskTrackerStatus(taskTrackerName, localHostname, 
 	              httpPort, 
@@ -1979,6 +1979,7 @@ public class TaskTracker implements MRConstants, TaskUmbilicalProtocol,
 	              localStorage.numFailures(),
 	              maxMapSlots,
 	              maxReduceSlots);
+	              */
       }
     } else {
       LOG.info("Resending 'status' to '" + jobTrackAddr.getHostName() +
@@ -2038,19 +2039,20 @@ public class TaskTracker implements MRConstants, TaskUmbilicalProtocol,
     //
     // Xmit the heartbeat
     //
-    /*
     HeartbeatResponse heartbeatResponse = jobClient.heartbeat(status, 
                                                               justStarted,
                                                               justInited,
                                                               askForNewTask, 
                                                               heartbeatResponseId);
-                                                              */
+                                                              
+    /*
     HeartbeatResponse heartbeatResponse = jobClient.heartbeat(status, 
                                                               justStarted,
 													          justInited,
 													          askForNewTask, 
 													          heartbeatResponseId,
 													          "Test");
+													          */
       
     //
     // The heartbeat got through successfully!
