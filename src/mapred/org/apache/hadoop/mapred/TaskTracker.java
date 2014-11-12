@@ -2053,7 +2053,6 @@ public class TaskTracker implements MRConstants, TaskUmbilicalProtocol,
 													          heartbeatResponseId,
 													          "Test");
 													          */
-      
     //
     // The heartbeat got through successfully!
     //
