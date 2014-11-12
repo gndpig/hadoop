@@ -50,6 +50,8 @@ public class TaskTrackerStatus implements Writable {
   int taskFailures;
   int dirFailures;
   List<TaskStatus> taskReports;
+  
+  List<Task> tasks;
     
   volatile long lastSeen;
   private int maxMapTasks;
@@ -372,6 +374,14 @@ public class TaskTrackerStatus implements Writable {
     this.resStatus = new ResourceStatus();
     this.healthStatus = new TaskTrackerHealthStatus();
   }
+  
+  public TaskTrackerStatus(String trackerName, String host, 
+          int httpPort, List<TaskStatus> taskReports, 
+          int taskFailures, int dirFailures,
+          int maxMapTasks, int maxReduceTasks, List<Task> tasks) {
+	  this(trackerName, host, httpPort, taskReports, taskFailures, dirFailures, maxMapTasks, maxReduceTasks);
+	  this.tasks = tasks;
+  }
 
   /**
    */
@@ -417,6 +427,10 @@ public class TaskTrackerStatus implements Writable {
    */
   public List<TaskStatus> getTaskReports() {
     return taskReports;
+  }
+  
+  public List<Task> getTasks() {
+	  return tasks;
   }
    
   /**

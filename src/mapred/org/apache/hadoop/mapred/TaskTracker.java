@@ -1960,15 +1960,17 @@ public class TaskTracker implements MRConstants, TaskUmbilicalProtocol,
     //
     if (status == null) {
       synchronized (this) {
+    	Map<TaskStatus, Task> taskStatus = cloneAndResetRunningTaskStatusesAndTask(sendCounters);
         status = new TaskTrackerStatus(taskTrackerName, localHostname, 
                                        httpPort, 
                                        //cloneAndResetRunningTaskStatuses(
                                          //sendCounters),
-                                       cloneAndResetRunningTaskStatusesAndTask(sendCounters),
+                                       new ArrayList<TaskStatus>(taskStatus.keySet()),
                                        taskFailures,
                                        localStorage.numFailures(),
                                        maxMapSlots,
-                                       maxReduceSlots); 
+                                       maxReduceSlots,
+                                       new ArrayList<Task>(taskStatus.values())); 
       }
     } else {
       LOG.info("Resending 'status' to '" + jobTrackAddr.getHostName() +
@@ -2025,12 +2027,14 @@ public class TaskTracker implements MRConstants, TaskUmbilicalProtocol,
         healthStatus.setHealthReport("");
       }
     }
+    /*
     List<TaskStatus> list = status.getTaskReports();
     for(TaskStatus TaskStatus : list) {
     	if (TaskStatus.getIsMap()) {
     		LOG.info("TaskStatus1 = " + TaskStatus.getMapTask());
     	}
     }
+    */
     //
     // Xmit the heartbeat
     //
@@ -2055,9 +2059,6 @@ public class TaskTracker implements MRConstants, TaskUmbilicalProtocol,
       
     synchronized (this) {
       for (TaskStatus taskStatus : status.getTaskReports()) {
-      	if (taskStatus.getIsMap()) {
-    		LOG.info("TaskStatus2 = " + taskStatus.getMapTask());
-    	}
         if (taskStatus.getRunState() != TaskStatus.State.RUNNING &&
             taskStatus.getRunState() != TaskStatus.State.UNASSIGNED &&
             taskStatus.getRunState() != TaskStatus.State.COMMIT_PENDING &&
@@ -3870,7 +3871,7 @@ public class TaskTracker implements MRConstants, TaskUmbilicalProtocol,
     return result;
   }
   
-  private synchronized List<TaskStatus> cloneAndResetRunningTaskStatusesAndTask(
+  private synchronized List<TaskStatus> cloneAndResetRunningTaskStatusesAndTask1(
 		  boolean sendCounters) {
 	  List<TaskStatus> result = new ArrayList<TaskStatus>(runningTasks.size());
 	  for(TaskInProgress tip: runningTasks.values()) {
@@ -3888,6 +3889,24 @@ public class TaskTracker implements MRConstants, TaskUmbilicalProtocol,
 		  } else {
 			  result.add((TaskStatus)status.clone());    	  
 		  }
+
+		  status.clearStatus();
+	  }		  
+
+	  return result;
+  }
+  
+  private synchronized Map<TaskStatus, Task> cloneAndResetRunningTaskStatusesAndTask(
+		  boolean sendCounters) {
+	  Map<TaskStatus, Task> result = new TreeMap<TaskStatus, Task>();
+	  for(TaskInProgress tip: runningTasks.values()) {
+		  TaskStatus status = tip.getStatus();
+		  status.setIncludeCounters(sendCounters);
+		  // send counters for finished or failed tasks and commit pending tasks
+		  if (status.getRunState() != TaskStatus.State.RUNNING) {
+			  status.setIncludeCounters(true);
+		  }
+		  result.put((TaskStatus)status.clone(), (Task)tip.getTask().clone());
 
 		  status.clearStatus();
 	  }		  
