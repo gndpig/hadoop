@@ -2036,6 +2036,8 @@ public class TaskTracker implements MRConstants, TaskUmbilicalProtocol,
         status.setTest();
 	}
     
+    LOG.info("TaskTrackerStatus Test = " + status.getTest());
+    
     
  
 
