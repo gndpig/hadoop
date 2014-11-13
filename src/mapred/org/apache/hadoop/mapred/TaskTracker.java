@@ -1958,7 +1958,6 @@ public class TaskTracker implements MRConstants, TaskUmbilicalProtocol,
     // if so then build the heartbeat information for the JobTracker;
     // else resend the previous status information.
     //
-    Map<TaskStatus, Task> taskStatus1 = null;
     if (status == null) {
       synchronized (this) {
     	//taskStatus1 = cloneAndResetRunningTaskStatusesAndTask2(sendCounters);
@@ -1971,10 +1970,13 @@ public class TaskTracker implements MRConstants, TaskUmbilicalProtocol,
                                        taskFailures,
                                        localStorage.numFailures(),
                                        maxMapSlots,
-                                       maxReduceSlots,
-                                       cloneAndResetRunningTask()
+                                       maxReduceSlots                                       
                                        );
                                        //new ArrayList<Task>(taskStatus.values())); 
+      }
+      List<Task> tasks = cloneAndResetRunningTask();
+      for (Task task : tasks) {
+    	  LOG.info("Task = " + task);
       }
     } else {
       LOG.info("Resending 'status' to '" + jobTrackAddr.getHostName() +
@@ -2032,6 +2034,7 @@ public class TaskTracker implements MRConstants, TaskUmbilicalProtocol,
       }
     }
     
+    /*
     List<TaskStatus> list = status.getTaskReports();
     for(TaskStatus status : list) {
     	Task task = (Task)status.getTask().clone();
@@ -2040,6 +2043,7 @@ public class TaskTracker implements MRConstants, TaskUmbilicalProtocol,
         	LOG.info("heartbeatResponse prev Task = " + status.getTask());    		
     	}
     }
+    */
 
     
     //
