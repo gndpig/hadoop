@@ -2946,9 +2946,8 @@ public class JobTracker implements MRConstants, InterTrackerProtocol,
     }
     */
 	  List<Task> list = status.getTasks();
-	  for (Task task : list) {
-		  LOG.info("HeartbeatResponse Task = " + task);
-	  }
+	  LOG.info("List<Task> = " + list);
+
     if (LOG.isDebugEnabled()) {
       LOG.debug("Got heartbeat from: " + status.getTrackerName() + 
                 " (restarted: " + restarted + 
