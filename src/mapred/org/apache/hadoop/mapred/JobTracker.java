@@ -2933,10 +2933,7 @@ public class JobTracker implements MRConstants, InterTrackerProtocol,
                                                   short responseId) 
     throws IOException {
 	 
-    List<TaskStatus> list = status.getTaskReports();
-    for(TaskStatus taskStatus : list) {
-    	LOG.info("test = " + taskStatus.getTest());
-    }
+	LOG.info("TaskTrackerStatus test = " + status.getTest());
 
 
     if (LOG.isDebugEnabled()) {

@@ -59,6 +59,16 @@ public class TaskTrackerStatus implements Writable {
   private TaskTrackerHealthStatus healthStatus;
    
   public static final int UNAVAILABLE = -1;
+  
+  private int test = 0;
+  
+  public void setTest() {
+	  this.test = 1;
+  }
+  
+  public int getTest() {
+	  return test;
+  }
   /**
    * Class representing a collection of resources on this tasktracker.
    */

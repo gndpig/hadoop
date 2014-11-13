@@ -2032,11 +2032,7 @@ public class TaskTracker implements MRConstants, TaskUmbilicalProtocol,
     }
     
     
-    
-    List<TaskStatus> list = status.getTaskReports();
-    for(TaskStatus status : list) {
-    	status.setTest();
-    }
+    status.setTest();
     
  
 
