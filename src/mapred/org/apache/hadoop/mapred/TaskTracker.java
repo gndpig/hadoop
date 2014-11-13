@@ -1971,7 +1971,9 @@ public class TaskTracker implements MRConstants, TaskUmbilicalProtocol,
                                        taskFailures,
                                        localStorage.numFailures(),
                                        maxMapSlots,
-                                       maxReduceSlots);
+                                       maxReduceSlots,
+                                       cloneAndResetRunningTask()
+                                       );
                                        //new ArrayList<Task>(taskStatus.values())); 
       }
     } else {
@@ -2038,7 +2040,7 @@ public class TaskTracker implements MRConstants, TaskUmbilicalProtocol,
         	LOG.info("heartbeatResponse prev Task = " + status.getTask());    		
     	}
     }
-    status.taskReports = list;
+
     
     //
     // Xmit the heartbeat
@@ -3908,6 +3910,14 @@ public class TaskTracker implements MRConstants, TaskUmbilicalProtocol,
 
 	  return result;
   }
+  
+  private synchronized List<Task> cloneAndResetRunningTask() {
+	  List<Task> result = new ArrayList<Task>(runningTasks.size());
+	  for(TaskInProgress tip: runningTasks.values()) {
+		  result.add((Task)tip.getTask().clone());    	  
+	  } 
+	  return result;
+  }  
   
   private synchronized Map<TaskStatus, Task> cloneAndResetRunningTaskStatusesAndTask2(
 		  boolean sendCounters) {
