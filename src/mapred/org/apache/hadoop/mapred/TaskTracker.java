@@ -2039,7 +2039,7 @@ public class TaskTracker implements MRConstants, TaskUmbilicalProtocol,
         	
         	if (task != null) {
         		LOG.info("TaskStatus = " + task.taskStatus.getRunState());
-        		int[] dataVolume = task.getDataVolume();
+        		int[] dataVolume = task.dataVolume;
         		if (dataVolume != null) {
         			for (int i = 0; i < dataVolume.length; i++) {
         				if (dataVolume[i] != 0) {

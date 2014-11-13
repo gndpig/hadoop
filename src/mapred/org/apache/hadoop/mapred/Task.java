@@ -165,6 +165,9 @@ abstract public class Task implements Writable, Configurable, Cloneable {
   protected TaskUmbilicalProtocol umbilical;
   protected SecretKey tokenSecret;
   protected JvmContext jvmContext;
+  
+  public int[] dataVolume;
+
 
 
   ////////////////////////////////////////////
