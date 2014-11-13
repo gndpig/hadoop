@@ -84,7 +84,7 @@ class MapTask extends Task {
   private static final Log LOG = LogFactory.getLog(MapTask.class.getName());
   
   // パーティション毎のデータ量
-  private int[] dataVolume;
+  private static int[] dataVolume;
 
   {   // set phase for this task
     setPhase(TaskStatus.Phase.MAP); 
