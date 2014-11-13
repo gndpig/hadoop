@@ -33,7 +33,7 @@ import java.util.*;
  *
  * This is NOT a public interface!
  **************************************************/
-public class TaskTrackerStatus implements Writable {
+public class TaskTrackerStatus implements Writable, Cloneable {
   public static final Log LOG = LogFactory.getLog(TaskTrackerStatus.class);
   
   static {                                        // register a ctor
@@ -715,5 +715,15 @@ public class TaskTrackerStatus implements Writable {
       taskReports.add(TaskStatus.readTaskStatus(in));
     }
     getHealthStatus().readFields(in);
+  }
+  
+  @Override
+  public Object clone() {
+    try {
+      return super.clone();
+    } catch (CloneNotSupportedException cnse) {
+      // Shouldn't happen since we do implement Clonable
+      throw new InternalError(cnse.toString());
+    }
   }
 }

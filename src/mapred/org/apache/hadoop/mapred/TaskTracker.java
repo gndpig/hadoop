@@ -2045,7 +2045,7 @@ public class TaskTracker implements MRConstants, TaskUmbilicalProtocol,
     //
     // Xmit the heartbeat
     //
-    HeartbeatResponse heartbeatResponse = jobClient.heartbeat(status, 
+    HeartbeatResponse heartbeatResponse = jobClient.heartbeat((TaskTrackerStatus)status.clone(), 
                                                               justStarted,
                                                               justInited,
                                                               askForNewTask, 
