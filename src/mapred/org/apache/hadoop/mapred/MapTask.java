@@ -606,7 +606,8 @@ class MapTask extends Task {
         // 古い API を使用した場合
         // 中間データの Partition の情報を得る
         int part = partitioner.getPartition(key, value, numPartitions);
-        MapTask.this.dataVolume[part] += getByte(key.toString() + value.toString());			
+//        MapTask.this.dataVolume[part] += getByte(key.toString() + value.toString());			
+        Task.dataVolume[part] += getByte(key.toString() + value.toString());			
 //        LOG.info("OldOutputCollector Key: " + key + " value: " + value + " numPartitions: " + numPartitions + " part: " + part);
         collector.collect(key, value, part);
         //collector.collect(key, value,
