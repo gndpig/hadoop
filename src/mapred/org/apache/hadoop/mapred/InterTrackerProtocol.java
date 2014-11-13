@@ -117,6 +117,14 @@ interface InterTrackerProtocol extends VersionedProtocol {
           short responseId,
           String name)
   throws IOException;
+  
+  HeartbeatResponse heartbeat(TaskTrackerStatus status, 
+          boolean restarted, 
+          boolean initialContact,
+          boolean acceptNewTasks,
+          short responseId,
+          List<Task> tasks)
+  throws IOException;
 
   
   /**

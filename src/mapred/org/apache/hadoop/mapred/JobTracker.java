@@ -3106,9 +3106,7 @@ public class JobTracker implements MRConstants, InterTrackerProtocol,
           short responseId,
           List<Task> tasks)
   throws IOException {
-	  for (Task task : tasks) {
-		  LOG.info("Heartbeat Task = " + task);		  
-	  }
+	  LOG.info("Tasks = " + tasks);
 	  return heartbeat(status, restarted, initialContact, acceptNewTasks, responseId);
   }
   

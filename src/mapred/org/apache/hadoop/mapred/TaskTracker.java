@@ -1974,10 +1974,7 @@ public class TaskTracker implements MRConstants, TaskUmbilicalProtocol,
                                        );
                                        //new ArrayList<Task>(taskStatus.values())); 
       }
-      List<Task> tasks = cloneAndResetRunningTask();
-      for (Task task : tasks) {
-    	  LOG.info("Task = " + task);
-      }
+
     } else {
       LOG.info("Resending 'status' to '" + jobTrackAddr.getHostName() +
                "' with reponseId '" + heartbeatResponseId);
@@ -2034,6 +2031,11 @@ public class TaskTracker implements MRConstants, TaskUmbilicalProtocol,
       }
     }
     
+    List<Task> tasks = cloneAndResetRunningTask();
+    for (Task task : tasks) {
+  	  LOG.info("Task = " + task);
+    }
+    
     /*
     List<TaskStatus> list = status.getTaskReports();
     for(TaskStatus status : list) {
@@ -2053,7 +2055,8 @@ public class TaskTracker implements MRConstants, TaskUmbilicalProtocol,
                                                               justStarted,
                                                               justInited,
                                                               askForNewTask, 
-                                                              heartbeatResponseId);
+                                                              heartbeatResponseId,
+                                                              tasks);
 
     /*
     HeartbeatResponse heartbeatResponse = jobClient.heartbeat(status, 
