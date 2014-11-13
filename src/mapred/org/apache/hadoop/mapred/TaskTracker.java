@@ -2091,6 +2091,15 @@ public class TaskTracker implements MRConstants, TaskUmbilicalProtocol,
             taskStatus.getRunState() != TaskStatus.State.COMMIT_PENDING &&
             !taskStatus.inTaskCleanupPhase()) {
           if (taskStatus.getIsMap()) {
+        	  if (taskStatus.getRunState() == TaskStatus.State.SUCCEEDED) {
+        		  TaskInProgress tip = runningTasks.get(taskStatus.getTaskID());
+        		  MapTask task = (MapTask)tip.getTask();
+        		  LOG.info("SUCCEEDED Task = " + task);
+        		  int[] dataVolume = task.getDataVolume();
+        		  for (int i = 0; i < dataVolume.length; i++) {
+        			  LOG.info("dataVolume (" + i + ") = " + dataVolume[i]);
+        		  }
+        	  }
             mapTotal--;
           } else {
             reduceTotal--;
