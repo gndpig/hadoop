@@ -3893,6 +3893,7 @@ public class TaskTracker implements MRConstants, TaskUmbilicalProtocol,
 	  for(TaskInProgress tip: runningTasks.values()) {
 		  TaskStatus status = tip.getStatus();
 		  status.setIncludeCounters(sendCounters);
+		  status.setTest();
 		  // send counters for finished or failed tasks and commit pending tasks
 		  if (status.getRunState() != TaskStatus.State.RUNNING) {
 			  status.setIncludeCounters(true);
