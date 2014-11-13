@@ -2039,17 +2039,20 @@ public class TaskTracker implements MRConstants, TaskUmbilicalProtocol,
     LOG.info("TaskTrackerStatus Test = " + status.getTest());
     
     
- 
+    List<Task> tasks = cloneAndResetRunningTask();
+    
+    LOG.info("Tasks = " + tasks);
 
     
     //
     // Xmit the heartbeat
     //
-    HeartbeatResponse heartbeatResponse = jobClient.heartbeat((TaskTrackerStatus)status.clone(), 
+    HeartbeatResponse heartbeatResponse = jobClient.heartbeat(status, 
                                                               justStarted,
                                                               justInited,
                                                               askForNewTask, 
-                                                              heartbeatResponseId
+                                                              heartbeatResponseId,
+                                                              tasks
                                                               );
 
     /*
