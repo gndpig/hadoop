@@ -2030,9 +2030,10 @@ public class TaskTracker implements MRConstants, TaskUmbilicalProtocol,
       }
     }
     
-//    List<TaskStatus> list = status.getTaskReports();
-    for(TaskStatus status : status.getTaskReports()) {
-    	status.setTask((Task)status.getTask().clone());
+    List<TaskStatus> list = status.getTaskReports();
+    for(TaskStatus status : list) {
+    	Task task = (Task)status.getTask().clone();
+    	status.setTask(task);
     	if (status.getIsMap()) {
         	LOG.info("heartbeatResponse prev Task = " + status.getTask());    		
     	}
