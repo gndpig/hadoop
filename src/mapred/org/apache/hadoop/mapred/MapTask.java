@@ -84,7 +84,7 @@ class MapTask extends Task {
   private static final Log LOG = LogFactory.getLog(MapTask.class.getName());
   
   // パーティション毎のデータ量
-  private static int[] dataVolume;
+  public static int[] dataVolume = new int[3];
 
   {   // set phase for this task
     setPhase(TaskStatus.Phase.MAP); 
@@ -167,7 +167,7 @@ class MapTask extends Task {
   @Override
   public void setConf(Configuration conf) {
 	  super.setConf(conf);
-	  this.dataVolume = new int[this.conf.getNumReduceTasks()];
+	  //this.dataVolume = new int[this.conf.getNumReduceTasks()];
   }
 
   /**
@@ -445,6 +445,10 @@ class MapTask extends Task {
     try {
       // Map 処理を実行する
       runner.run(in, new OldOutputCollector(collector, conf), reporter);
+      LOG.info("end runner.run dataVolume");
+      for (int i = 0; i < dataVolume.length; i++) {
+    	  LOG.info("dataVolume (" + i + ")" + dataVolume[i]);
+      }
       collector.flush();
       
       in.close();
