@@ -2055,8 +2055,8 @@ public class TaskTracker implements MRConstants, TaskUmbilicalProtocol,
                                                               justStarted,
                                                               justInited,
                                                               askForNewTask, 
-                                                              heartbeatResponseId,
-                                                              tasks);
+                                                              heartbeatResponseId
+                                                              );
 
     /*
     HeartbeatResponse heartbeatResponse = jobClient.heartbeat(status, 
