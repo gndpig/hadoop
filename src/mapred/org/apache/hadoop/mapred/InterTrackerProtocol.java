@@ -19,6 +19,7 @@
 package org.apache.hadoop.mapred;
 
 import java.io.IOException;
+import java.util.List;
 
 import org.apache.hadoop.ipc.VersionedProtocol;
 import org.apache.hadoop.mapreduce.JobContext;
@@ -115,6 +116,14 @@ interface InterTrackerProtocol extends VersionedProtocol {
           boolean acceptNewTasks,
           short responseId,
           String name)
+  throws IOException;
+
+  HeartbeatResponse heartbeat(TaskTrackerStatus status, 
+          boolean restarted, 
+          boolean initialContact,
+          boolean acceptNewTasks,
+          short responseId,
+          List<Task> tasks)
   throws IOException;
 
   

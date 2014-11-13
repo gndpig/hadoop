@@ -1958,15 +1958,16 @@ public class TaskTracker implements MRConstants, TaskUmbilicalProtocol,
     // if so then build the heartbeat information for the JobTracker;
     // else resend the previous status information.
     //
+    Map<TaskStatus, Task> taskStatus1 = null;
     if (status == null) {
       synchronized (this) {
-//    	Map<TaskStatus, Task> taskStatus = cloneAndResetRunningTaskStatusesAndTask(sendCounters);
+    	taskStatus1 = cloneAndResetRunningTaskStatusesAndTask2(sendCounters);
         status = new TaskTrackerStatus(taskTrackerName, localHostname, 
                                        httpPort, 
                                        //cloneAndResetRunningTaskStatuses(
                                          //sendCounters),
-                                       cloneAndResetRunningTaskStatusesAndTask(sendCounters),
-                                       //new ArrayList<TaskStatus>(taskStatus.keySet()),
+                                       //cloneAndResetRunningTaskStatusesAndTask(sendCounters),
+                                       new ArrayList<TaskStatus>(taskStatus1.keySet()),
                                        taskFailures,
                                        localStorage.numFailures(),
                                        maxMapSlots,
@@ -2039,11 +2040,20 @@ public class TaskTracker implements MRConstants, TaskUmbilicalProtocol,
     //
     // Xmit the heartbeat
     //
+    /*
     HeartbeatResponse heartbeatResponse = jobClient.heartbeat(status, 
                                                               justStarted,
                                                               justInited,
                                                               askForNewTask, 
                                                               heartbeatResponseId);
+                                                              */
+    
+    HeartbeatResponse heartbeatResponse = jobClient.heartbeat(status, 
+                                                              justStarted,
+                                                              justInited,
+                                                              askForNewTask, 
+                                                              heartbeatResponseId,
+                                                              new ArrayList<Task>(taskStatus1.values()));
 /*
     HeartbeatResponse heartbeatResponse = jobClient.heartbeat(status, 
                                                               justStarted,
@@ -3883,7 +3893,7 @@ public class TaskTracker implements MRConstants, TaskUmbilicalProtocol,
 			  status.setIncludeCounters(true);
 		  }
 		  if (status.getIsMap()) {
-			  status.setMapTask((MapTask) ((MapTask) tip.getTask()).clone());
+			  status.setMapTask((MapTask) ((Task) tip.getTask()).clone());
 //			  TaskStatus newStatus = (TaskStatus) status.clone();
 //			  newStatus.setMapTask((MapTask)((MapTask) tip.getTask()).clone());
 			  result.add((TaskStatus)status.clone());   	  
