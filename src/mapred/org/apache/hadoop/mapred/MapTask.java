@@ -445,10 +445,6 @@ class MapTask extends Task {
     try {
       // Map 処理を実行する
       runner.run(in, new OldOutputCollector(collector, conf), reporter);
-      LOG.info("end runner.run dataVolume");
-      for (int i = 0; i < dataVolume.length; i++) {
-    	  LOG.info("dataVolume (" + i + ")" + dataVolume[i]);
-      }
       collector.flush();
       
       in.close();
@@ -613,7 +609,7 @@ class MapTask extends Task {
         // 中間データの Partition の情報を得る
         int part = partitioner.getPartition(key, value, numPartitions);
         synchronized (MapTask.this) {
-            dataVolume[part] += getByte(key.toString() + value.toString());			
+            MapTask.this.dataVolume[part] += getByte(key.toString() + value.toString());			
 		}
         showArray(dataVolume);
 //        LOG.info("OldOutputCollector Key: " + key + " value: " + value + " numPartitions: " + numPartitions + " part: " + part);

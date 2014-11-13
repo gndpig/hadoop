@@ -35,9 +35,7 @@ public class HashPartitioner<K2, V2> implements Partitioner<K2, V2> {
   /** Use {@link Object#hashCode()} to partition. */
   public int getPartition(K2 key, V2 value,
                           int numReduceTasks) {
-    int part =  (key.hashCode() & Integer.MAX_VALUE) % numReduceTasks;
-    LOG.info("partition part : " + part);
-    return part;
+    return (key.hashCode() & Integer.MAX_VALUE) % numReduceTasks;
   }
 
 }
