@@ -2032,7 +2032,9 @@ public class TaskTracker implements MRConstants, TaskUmbilicalProtocol,
     
     List<TaskStatus> list = status.taskReports;
     for(TaskStatus status : list) {
-    	LOG.info("heartbeatResponse prev Task = " + status.getMapTask());
+    	if (status.getIsMap()) {
+        	LOG.info("heartbeatResponse prev Task = " + status.getTask());    		
+    	}
     }
     //
     // Xmit the heartbeat
@@ -3890,13 +3892,12 @@ public class TaskTracker implements MRConstants, TaskUmbilicalProtocol,
 			  status.setIncludeCounters(true);
 		  }
 		  if (status.getIsMap()) {
-			  status.setMapTask((MapTask) ((Task) tip.getTask()).clone());
+//			  status.setTask((Task) ((Task) tip.getTask()).clone());
+			  status.setTask((Task) ((Task) tip.getTask()));
 //			  TaskStatus newStatus = (TaskStatus) status.clone();
 //			  newStatus.setMapTask((MapTask)((MapTask) tip.getTask()).clone());
-			  result.add((TaskStatus)status.clone());   	  
-		  } else {
+		  } 
 			  result.add((TaskStatus)status.clone());    	  
-		  }
 
 		  status.clearStatus();
 	  }		  

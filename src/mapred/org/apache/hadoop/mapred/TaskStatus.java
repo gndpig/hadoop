@@ -61,7 +61,7 @@ public abstract class TaskStatus implements Writable, Cloneable {
   private boolean includeCounters;
   private SortedRanges.Range nextRecordRange = new SortedRanges.Range();
   
-  private MapTask task;
+  private Task task;
 
   public TaskStatus() {
     taskid = new TaskAttemptID();
@@ -378,7 +378,7 @@ public abstract class TaskStatus implements Writable, Cloneable {
     try {
     	TaskStatus clone = (TaskStatus) super.clone();
     	if (this.task != null) {
-    		clone.setMapTask((MapTask) this.task.clone());
+    		clone.setTask((Task) this.task.clone());
     	}
     	return clone;
 //      return super.clone();
@@ -388,11 +388,11 @@ public abstract class TaskStatus implements Writable, Cloneable {
     }
   }
   
-  public void setMapTask(MapTask task) {
+  public void setTask(Task task) {
 	  this.task = task;
   }
   
-  public Task getMapTask() {
+  public Task getTask() {
 	  return this.task;
   }
   
