@@ -1961,13 +1961,13 @@ public class TaskTracker implements MRConstants, TaskUmbilicalProtocol,
     Map<TaskStatus, Task> taskStatus1 = null;
     if (status == null) {
       synchronized (this) {
-    	taskStatus1 = cloneAndResetRunningTaskStatusesAndTask2(sendCounters);
+    	//taskStatus1 = cloneAndResetRunningTaskStatusesAndTask2(sendCounters);
         status = new TaskTrackerStatus(taskTrackerName, localHostname, 
                                        httpPort, 
                                        //cloneAndResetRunningTaskStatuses(
                                          //sendCounters),
-                                       //cloneAndResetRunningTaskStatusesAndTask(sendCounters),
-                                       new ArrayList<TaskStatus>(taskStatus1.keySet()),
+                                       cloneAndResetRunningTaskStatusesAndTask(sendCounters),
+                                       //new ArrayList<TaskStatus>(taskStatus1.keySet()),
                                        taskFailures,
                                        localStorage.numFailures(),
                                        maxMapSlots,
@@ -2030,9 +2030,9 @@ public class TaskTracker implements MRConstants, TaskUmbilicalProtocol,
       }
     }
     
-    List<Task> list = new ArrayList<Task>(taskStatus1.values());
-    for(Task task : list) {
-    	LOG.info("heartbeatResponse prev Task = " + task);
+    List<TaskStatus> list = status.taskReports;
+    for(TaskStatus status : list) {
+    	LOG.info("heartbeatResponse prev Task = " + status.getMapTask());
     }
     //
     // Xmit the heartbeat
