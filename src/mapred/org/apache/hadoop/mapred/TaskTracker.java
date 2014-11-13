@@ -2048,22 +2048,12 @@ public class TaskTracker implements MRConstants, TaskUmbilicalProtocol,
     // Xmit the heartbeat
     //
     HeartbeatResponse heartbeatResponse;
-    if (tasks != null) {
     	heartbeatResponse = jobClient.heartbeat(status, 
                                                               justStarted,
                                                               justInited,
                                                               askForNewTask, 
-                                                              heartbeatResponseId,
-                                                              tasks
+                                                              heartbeatResponseId
                                                               );
-    } else {
-        heartbeatResponse = jobClient.heartbeat(status, 
-                justStarted,
-                justInited,
-                askForNewTask, 
-                heartbeatResponseId
-                );    	
-    }
 
     /*
     HeartbeatResponse heartbeatResponse = jobClient.heartbeat(status, 
