@@ -2029,31 +2029,28 @@ public class TaskTracker implements MRConstants, TaskUmbilicalProtocol,
         healthStatus.setHealthReport("");
       }
     }
-    /*
-    List<TaskStatus> list = status.getTaskReports();
-    for(TaskStatus TaskStatus : list) {
-    	if (TaskStatus.getIsMap()) {
-    		LOG.info("TaskStatus1 = " + TaskStatus.getMapTask());
-    	}
+    
+    List<Task> list = new ArrayList<Task>(taskStatus1.values());
+    for(Task task : list) {
+    	LOG.info("heartbeatResponse prev Task = " + task);
     }
-    */
     //
     // Xmit the heartbeat
     //
-    /*
     HeartbeatResponse heartbeatResponse = jobClient.heartbeat(status, 
                                                               justStarted,
                                                               justInited,
                                                               askForNewTask, 
                                                               heartbeatResponseId);
-                                                              */
-    
+
+    /*
     HeartbeatResponse heartbeatResponse = jobClient.heartbeat(status, 
                                                               justStarted,
                                                               justInited,
                                                               askForNewTask, 
                                                               heartbeatResponseId,
-                                                              new ArrayList<Task>(taskStatus1.values()));
+                                                              (List<Task>)null);
+                                                              */
 /*
     HeartbeatResponse heartbeatResponse = jobClient.heartbeat(status, 
                                                               justStarted,
