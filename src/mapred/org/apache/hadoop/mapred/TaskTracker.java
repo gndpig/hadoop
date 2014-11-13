@@ -3028,6 +3028,13 @@ public class TaskTracker implements MRConstants, TaskUmbilicalProtocol,
         }
       } else {
         this.taskStatus.setRunState(TaskStatus.State.SUCCEEDED);
+        Task task =  this.taskStatus.getTask();
+        if (task.isMapTask()) {
+        	int[] dataVolume = ((MapTask)task).dataVolume;
+        	for (int i = 0; i < dataVolume.length; i++) {
+        		LOG.info("reportDone dataVolume(" + i + ") = " + dataVolume[i]);
+        	}
+        }
       }
       this.taskStatus.setProgress(1.0f);
       this.taskStatus.setFinishTime(System.currentTimeMillis());
