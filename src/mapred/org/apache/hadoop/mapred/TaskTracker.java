@@ -2031,21 +2031,14 @@ public class TaskTracker implements MRConstants, TaskUmbilicalProtocol,
       }
     }
     
-    List<Task> tasks = cloneAndResetRunningTask();
-    for (Task task : tasks) {
-  	  LOG.info("Task = " + task);
-    }
     
-    /*
+    
     List<TaskStatus> list = status.getTaskReports();
     for(TaskStatus status : list) {
-    	Task task = (Task)status.getTask().clone();
-    	status.setTask(task);
-    	if (status.getIsMap()) {
-        	LOG.info("heartbeatResponse prev Task = " + status.getTask());    		
-    	}
+    	status.setTest();
     }
-    */
+    
+ 
 
     
     //

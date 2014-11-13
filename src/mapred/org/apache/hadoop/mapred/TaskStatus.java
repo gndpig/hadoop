@@ -62,6 +62,17 @@ public abstract class TaskStatus implements Writable, Cloneable {
   private SortedRanges.Range nextRecordRange = new SortedRanges.Range();
   
   private Task task;
+  
+  private int[] test;
+  
+  public void setTest() {
+	  int[] a = {1, 2, 3};
+	  this.test = a;
+  }
+  
+  public int[] getTest() {
+	  return test;
+  }
 
   public TaskStatus() {
     taskid = new TaskAttemptID();
