@@ -166,7 +166,7 @@ abstract public class Task implements Writable, Configurable, Cloneable {
   protected SecretKey tokenSecret;
   protected JvmContext jvmContext;
   
-  public static int[] dataVolume = new int[3];
+  //public static int[] dataVolume = new int[3];
 
 
 

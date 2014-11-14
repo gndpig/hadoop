@@ -84,7 +84,7 @@ class MapTask extends Task {
   private static final Log LOG = LogFactory.getLog(MapTask.class.getName());
   
   // パーティション毎のデータ量
-//  public int[] dataVolume;
+    public static int[] dataVolume;
 
   {   // set phase for this task
     setPhase(TaskStatus.Phase.MAP); 
@@ -607,7 +607,7 @@ class MapTask extends Task {
         // 中間データの Partition の情報を得る
         int part = partitioner.getPartition(key, value, numPartitions);
 //        MapTask.this.dataVolume[part] += getByte(key.toString() + value.toString());			
-        Task.dataVolume[part] += getByte(key.toString() + value.toString());			
+        MapTask.dataVolume[part] += getByte(key.toString() + value.toString());			
 //        LOG.info("OldOutputCollector Key: " + key + " value: " + value + " numPartitions: " + numPartitions + " part: " + part);
         collector.collect(key, value, part);
         //collector.collect(key, value,
