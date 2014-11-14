@@ -32,6 +32,8 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
+import java.lang.management.ManagementFactory;
+import java.lang.management.RuntimeMXBean;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
@@ -613,6 +615,7 @@ class MapTask extends Task {
 //        MapTask.this.dataVolume[part] += getByte(key.toString() + value.toString());			
         MapTask.dataVolume[part] += getByte(key.toString() + value.toString());			
 //        LOG.info("OldOutputCollector Key: " + key + " value: " + value + " numPartitions: " + numPartitions + " part: " + part);
+        showArray(MapTask.dataVolume);
         collector.collect(key, value, part);
         //collector.collect(key, value,
         //                  partitioner.getPartition(key, value, numPartitions));
@@ -634,14 +637,17 @@ class MapTask extends Task {
     	}
     	return ret;
     }
-    
-    private void showArray(int[] data) {
-    	for (int i = 0; i < data.length; i++) {
-    		LOG.info("dataVolume (" + i + ") = " + data[i]);
-    	}
-    }
   }
 
+  public static void showArray(int[] data) {
+  	RuntimeMXBean bean = ManagementFactory.getRuntimeMXBean();
+  	String vmName = bean.getName();
+  	long pid = Long.valueOf(vmName.split("@")[0]);
+  	for (int i = 0; i < data.length; i++) {
+  		LOG.info("[" + vmName + "](" + pid + ")" + "dataVolume (" + i + ") = " + data[i]);
+  	}
+  }
+  
   private class NewDirectOutputCollector<K,V>
   extends org.apache.hadoop.mapreduce.RecordWriter<K,V> {
     private final org.apache.hadoop.mapreduce.RecordWriter out;
