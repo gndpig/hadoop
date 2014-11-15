@@ -3703,6 +3703,7 @@ public class TaskTracker implements MRConstants, TaskUmbilicalProtocol,
       tip.reportDone();
       Task task = tip.getTask();
       task.dataVolume = dataVolume;
+      MapTask.showArray(task.dataVolume);
     } else {
       LOG.warn("Unknown child task done: "+taskid+". Ignored.");
     }  	
@@ -3923,20 +3924,20 @@ public class TaskTracker implements MRConstants, TaskUmbilicalProtocol,
 		  if (status.getRunState() != TaskStatus.State.RUNNING) {
 			  status.setIncludeCounters(true);
 		  }
-		  if (status.getIsMap()) {
-		  	LOG.info("cloneAndResetRunnningTaskStatusesAndTask");
-		  	if (status.getRunState() == TaskStatus.State.SUCCEEDED) {
-		  		LOG.info("cloneAndResetRunningTaskStatusesAndTask SUCCEEDED");
-		  		Task task = tip.getTask();
-		  		if (task != null && task.dataVolume != null) {
-				  	MapTask.showArray(status.getTask().dataVolume);		  				  			
-		  		}
-		  	}
-//			  status.setTask((Task) ((Task) tip.getTask()).clone());
-//			  status.setTask((Task) ((Task) tip.getTask()));
-//			  TaskStatus newStatus = (TaskStatus) status.clone();
-//			  newStatus.setMapTask((MapTask)((MapTask) tip.getTask()).clone());
-		  } 
+//		  if (status.getIsMap()) {
+//		  	LOG.info("cloneAndResetRunnningTaskStatusesAndTask");
+//		  	if (status.getRunState() == TaskStatus.State.SUCCEEDED) {
+//		  		LOG.info("cloneAndResetRunningTaskStatusesAndTask SUCCEEDED");
+//		  		Task task = tip.getTask();
+//		  		if (task != null && task.dataVolume != null) {
+//				  	MapTask.showArray(status.getTask().dataVolume);		  				  			
+//		  		}
+//		  	}
+////			  status.setTask((Task) ((Task) tip.getTask()).clone());
+////			  status.setTask((Task) ((Task) tip.getTask()));
+////			  TaskStatus newStatus = (TaskStatus) status.clone();
+////			  newStatus.setMapTask((MapTask)((MapTask) tip.getTask()).clone());
+//		  } 
 			  result.add((TaskStatus)status.clone());    	  
 
 		  status.clearStatus();
