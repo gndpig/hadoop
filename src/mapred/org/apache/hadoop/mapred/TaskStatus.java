@@ -415,7 +415,7 @@ public abstract class TaskStatus implements Writable, Cloneable {
       counters.write(out);
     }
     nextRecordRange.write(out);
-    task.write(out);
+//    task.write(out);
   }
 
   public void readFields(DataInput in) throws IOException {
@@ -436,7 +436,7 @@ public abstract class TaskStatus implements Writable, Cloneable {
     }
     nextRecordRange.readFields(in);
     
-    this.task.readFields(in);
+//    this.task.readFields(in);
   }
   
   //////////////////////////////////////////////////////////////////////////////
