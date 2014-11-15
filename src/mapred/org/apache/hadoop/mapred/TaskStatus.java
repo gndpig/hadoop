@@ -408,6 +408,10 @@ public abstract class TaskStatus implements Writable, Cloneable {
   	this.numReduceTasks = numReduceTasks;
   }
   
+  public int getNumReduceTasks() {
+  	return this.getNumReduceTasks();
+  }
+  
   //////////////////////////////////////////////
   // Writable
   //////////////////////////////////////////////
