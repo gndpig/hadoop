@@ -3923,7 +3923,9 @@ public class TaskTracker implements MRConstants, TaskUmbilicalProtocol,
 		  if (status.getIsMap()) {
 		  	LOG.info("cloneAndResetRunnningTaskStatusesAndTask");
 		  	if (status.getRunState() == TaskStatus.State.SUCCEEDED) {
-			  	MapTask.showArray(status.getTask().dataVolume);		  		
+		  		LOG.info("cloneAndResetRunningTaskStatusesAndTask SUCCEEDED");
+		  		LOG.info(tip.getTask());
+			  	//MapTask.showArray(status.getTask().dataVolume);		  		
 		  	}
 //			  status.setTask((Task) ((Task) tip.getTask()).clone());
 //			  status.setTask((Task) ((Task) tip.getTask()));
