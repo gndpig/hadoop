@@ -376,12 +376,7 @@ public abstract class TaskStatus implements Writable, Cloneable {
   @Override
   public Object clone() {
     try {
-    	TaskStatus clone = (TaskStatus) super.clone();
-    	if (this.task != null) {
-    		clone.setTask((Task) this.task.clone());
-    	}
-    	return clone;
-//      return super.clone();
+    	return super.clone();
     } catch (CloneNotSupportedException cnse) {
       // Shouldn't happen since we do implement Clonable
       throw new InternalError(cnse.toString());

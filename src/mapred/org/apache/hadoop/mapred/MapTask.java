@@ -1843,8 +1843,4 @@ class MapTask extends Task {
     }
   }
   
-  @Override
-  public Object clone() {
-    return super.clone();
-  }
 }

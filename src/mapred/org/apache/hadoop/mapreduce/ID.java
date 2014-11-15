@@ -33,7 +33,7 @@ import org.apache.hadoop.io.WritableComparable;
  * @see TaskID
  * @see TaskAttemptID
  */
-public abstract class ID implements WritableComparable<ID>, Cloneable {
+public abstract class ID implements WritableComparable<ID> {
   protected static final char SEPARATOR = '_';
   protected int id;
 
@@ -86,10 +86,4 @@ public abstract class ID implements WritableComparable<ID>, Cloneable {
   public void write(DataOutput out) throws IOException {
     out.writeInt(id);
   }
-  
-  @Override
-  public Object clone() throws CloneNotSupportedException {
-	  return super.clone();
-  }
-  
 }

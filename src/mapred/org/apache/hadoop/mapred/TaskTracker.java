@@ -3938,34 +3938,7 @@ public class TaskTracker implements MRConstants, TaskUmbilicalProtocol,
 
 	  return result;
   }
-  
-  private synchronized List<Task> cloneAndResetRunningTask() {
-	  List<Task> result = new ArrayList<Task>(runningTasks.size());
-	  for(TaskInProgress tip: runningTasks.values()) {
-		  result.add((Task)tip.getTask().clone());    	  
-	  } 
-	  return result;
-  }  
-  
-  private synchronized Map<TaskStatus, Task> cloneAndResetRunningTaskStatusesAndTask2(
-		  boolean sendCounters) {
-	  Map<TaskStatus, Task> result = new TreeMap<TaskStatus, Task>();
-	  for(TaskInProgress tip: runningTasks.values()) {
-		  TaskStatus status = tip.getStatus();
-		  status.setIncludeCounters(sendCounters);
-		  // send counters for finished or failed tasks and commit pending tasks
-		  if (status.getRunState() != TaskStatus.State.RUNNING) {
-			  status.setIncludeCounters(true);
-		  }
-		  result.put((TaskStatus)status.clone(), (Task)tip.getTask().clone());
-
-		  status.clearStatus();
-	  }		  
-
-	  return result;
-  }
- 
-  
+    
   /**
    * Get the list of tasks that will be reported back to the 
    * job tracker in the next heartbeat cycle.

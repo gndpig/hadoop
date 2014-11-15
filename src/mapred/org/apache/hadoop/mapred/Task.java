@@ -63,7 +63,7 @@ import org.apache.hadoop.fs.FSDataInputStream;
  * 
  * This is NOT a public interface.
  */
-abstract public class Task implements Writable, Configurable, Cloneable {
+abstract public class Task implements Writable, Configurable {
   private static final Log LOG =
     LogFactory.getLog(Task.class);
   public static final String MR_COMBINE_RECORDS_BEFORE_PROGRESS = "mapred.combine.recordsBeforeProgress";
@@ -1521,17 +1521,5 @@ abstract public class Task implements Writable, Configurable, Cloneable {
                                                 valueClass);
       reducer.run(reducerContext);
     } 
-  }
-  
-  @Override
-  public Object clone() {
-    try {
-      Task clone = (Task)super.clone();
-      clone.taskId = (TaskAttemptID)this.taskId.clone();
-      return clone;
-    } catch (CloneNotSupportedException cnse) {
-      // Shouldn't happen since we do implement Clonable
-      throw new InternalError(cnse.toString());
-    }
   }
 }

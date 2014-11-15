@@ -183,12 +183,4 @@ public class TaskID extends org.apache.hadoop.mapred.ID {
     throw new IllegalArgumentException("TaskId string : " + str 
         + " is not properly formed");
   }
-  
-  @Override
-  public Object clone() throws CloneNotSupportedException {
-	  TaskID clone = (TaskID)super.clone();
-	  clone.jobId = (JobID)this.jobId.clone();
-	  return clone;
-  }
-  
 }
