@@ -2031,10 +2031,6 @@ public class TaskTracker implements MRConstants, TaskUmbilicalProtocol,
       }
     }
     
-    List<TaskStatus> list = status.getTaskReports();
-    for (TaskStatus taskStatus : list) {
-    	LOG.info("prev Heartbeat Task taskStatus is" + taskStatus.getTask().taskStatus);
-    }
            
     //
     // Xmit the heartbeat
@@ -3930,8 +3926,18 @@ public class TaskTracker implements MRConstants, TaskUmbilicalProtocol,
 //			  newStatus.setMapTask((MapTask)((MapTask) tip.getTask()).clone());
 //		  }
 //		  status.setTask((Task)tip.getTask().clone());
-		  status.setTask((Task)tip.getTask());
-			result.add((TaskStatus)status.clone());    	  
+		  TaskStatus newStatus = (TaskStatus)status.clone();
+		  if (status.getRunState() == TaskStatus.State.SUCCEEDED) {
+			  Task task = tip.getTask();
+			  newStatus.setDataVolume(task.dataVolume);
+			  newStatus.setNumReduceTasks(tip.getJobConf().getNumReduceTasks());
+		  } else {
+		  	newStatus.setNumReduceTasks(0);
+		  }
+		  
+		  //status.setTask((Task)tip.getTask());
+//			result.add((TaskStatus)status.clone());   
+			result.add(newStatus);    	  
 
 		  status.clearStatus();
 	  }		  

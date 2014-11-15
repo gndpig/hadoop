@@ -61,7 +61,10 @@ public abstract class TaskStatus implements Writable, Cloneable {
   private boolean includeCounters;
   private SortedRanges.Range nextRecordRange = new SortedRanges.Range();
   
-  private Task task;
+//  private Task task;
+  
+  private int[] dataVolume = {};
+  private int numReduceTasks = 0;
   
   public TaskStatus() {
     taskid = new TaskAttemptID();
@@ -383,12 +386,26 @@ public abstract class TaskStatus implements Writable, Cloneable {
     }
   }
   
+  /*
   public void setTask(Task task) {
 	  this.task = task;
   }
   
   public Task getTask() {
 	  return this.task;
+  }
+  */
+  
+  public void setDataVolume(int[] dataVolume) {
+  	this.dataVolume = dataVolume;
+  }
+  
+  public int[] getDataVolume() {
+  	return this.dataVolume;
+  }
+  
+  public void setNumReduceTasks(int numReduceTasks) {
+  	this.numReduceTasks = numReduceTasks;
   }
   
   //////////////////////////////////////////////
@@ -410,7 +427,10 @@ public abstract class TaskStatus implements Writable, Cloneable {
       counters.write(out);
     }
     nextRecordRange.write(out);
-//    task.write(out);
+    for (int i = 0; i < dataVolume.length; i++) {
+    	out.writeInt(dataVolume[i]);
+    }
+    out.writeInt(numReduceTasks);
   }
 
   public void readFields(DataInput in) throws IOException {
@@ -430,7 +450,11 @@ public abstract class TaskStatus implements Writable, Cloneable {
       counters.readFields(in);
     }
     nextRecordRange.readFields(in);
-//    this.task.readFields(in);
+    this.numReduceTasks = in.readInt();
+    this.dataVolume = new int[numReduceTasks];
+    for (int i = 0; i < numReduceTasks; i++) {
+    	this.dataVolume[i] = in.readInt();
+    }
   }
   
   //////////////////////////////////////////////////////////////////////////////
