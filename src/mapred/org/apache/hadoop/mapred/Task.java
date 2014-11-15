@@ -420,7 +420,7 @@ abstract public class Task implements Writable, Configurable {
     taskId.write(out);
     out.writeInt(partition);
     out.writeInt(numSlotsRequired);
-    //taskStatus.write(out);
+    taskStatus.write(out);
     skipRanges.write(out);
     out.writeBoolean(skipping);
     out.writeBoolean(jobCleanup);
