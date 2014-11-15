@@ -2935,7 +2935,7 @@ public class JobTracker implements MRConstants, InterTrackerProtocol,
   	
   	List<TaskStatus> list = status.getTaskReports();
   	for (TaskStatus taskSatus : list) {
-  		LOG.info("Heartbeat TaskStatus numReduceTasks = " + taskSatus.getNumReduceTasks());
+  		MapTask.showArray(taskSatus.getDataVolume());
   	}
 	 
     if (LOG.isDebugEnabled()) {
