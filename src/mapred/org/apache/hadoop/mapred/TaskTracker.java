@@ -2030,29 +2030,7 @@ public class TaskTracker implements MRConstants, TaskUmbilicalProtocol,
         healthStatus.setHealthReport("");
       }
     }
-    
-/*
-    List<TaskStatus> list = status.getTaskReports();
-    for (TaskStatus status : list) {
-    	if (status.getIsMap()) {
-        	MapTask task = (MapTask)status.getTask();
-        	
-        	if (task != null) {
-        		LOG.info("TaskStatus = " + status.getRunState());
-        		MapTask.showArray(MapTask.dataVolume);
-        		int[] dataVolume = MapTask.dataVolume;
-        		if (dataVolume != null) {
-        			for (int i = 0; i < dataVolume.length; i++) {
-        				if (dataVolume[i] != 0) {
-        					LOG.info("dataVolume = (" + i + " ) = " + dataVolume[i]);
-        				}
-        			}
-        		}
-        	}    		
-    	}
-    }
-    */
-       
+           
     //
     // Xmit the heartbeat
     //
@@ -3711,12 +3689,18 @@ public class TaskTracker implements MRConstants, TaskUmbilicalProtocol,
     }
   }
   
+  /**
+   * The task (Map task) is done.
+   */
   public synchronized void done(TaskAttemptID taskid, JvmContext jvmContext, int[] dataVolume)
   throws IOException {
     authorizeJVM(taskid.getJobID());
     TaskInProgress tip = tasks.get(taskid);
-    LOG.info("TaskTracker done dataVolume");
-    MapTask.showArray(dataVolume);
+    TaskInProgress runningtip = runningTasks.get(taskid);
+    Task task = runningtip.getTask();
+    task.dataVolume = dataVolume;
+//    LOG.info("TaskTracker done dataVolume");
+//    MapTask.showArray(dataVolume);
     if (tip != null) {
       validateJVM(tip, jvmContext, taskid);
       commitResponses.remove(taskid);

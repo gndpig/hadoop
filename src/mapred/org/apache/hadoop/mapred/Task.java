@@ -166,11 +166,10 @@ abstract public class Task implements Writable, Configurable, Cloneable {
   protected SecretKey tokenSecret;
   protected JvmContext jvmContext;
   
+  // パーティション毎のデータ量 (MapTask のみ使用)
   protected int[] dataVolume;
 
   
-
-
   ////////////////////////////////////////////
   // Constructors
   ////////////////////////////////////////////
