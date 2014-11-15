@@ -2030,6 +2030,11 @@ public class TaskTracker implements MRConstants, TaskUmbilicalProtocol,
         healthStatus.setHealthReport("");
       }
     }
+    
+    List<TaskStatus> list = status.getTaskReports();
+    for (TaskStatus taskStatus : list) {
+    	LOG.info("prev Heartbeat task is" + (taskStatus != null));
+    }
            
     //
     // Xmit the heartbeat
