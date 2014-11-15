@@ -3008,6 +3008,10 @@ public class TaskTracker implements MRConstants, TaskUmbilicalProtocol,
         }
       } else {
         this.taskStatus.setRunState(TaskStatus.State.SUCCEEDED);
+        LOG.info("reportDone");
+        if (this.getTask().isMapTask()) {
+        	MapTask.showArray(this.getTask().dataVolume);
+        }
       }
       this.taskStatus.setProgress(1.0f);
       this.taskStatus.setFinishTime(System.currentTimeMillis());
@@ -3700,10 +3704,9 @@ public class TaskTracker implements MRConstants, TaskUmbilicalProtocol,
     if (tip != null) {
       validateJVM(tip, jvmContext, taskid);
       commitResponses.remove(taskid);
-      tip.reportDone();
       Task task = tip.getTask();
       task.dataVolume = dataVolume;
-      MapTask.showArray(task.dataVolume);
+      tip.reportDone();
     } else {
       LOG.warn("Unknown child task done: "+taskid+". Ignored.");
     }  	
