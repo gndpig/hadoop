@@ -432,10 +432,18 @@ public abstract class TaskStatus implements Writable, Cloneable {
     }
     nextRecordRange.write(out);
     out.writeInt(numReduceTasks);
+    writeIntArray(out, dataVolume);
 
 //    for (int i = 0; i < dataVolume.length; i++) {
 //    	out.writeInt(dataVolume[i]);
 //    }
+  }
+  
+  private void writeIntArray(DataOutput out, int[] s) throws IOException {
+  	out.writeInt(s.length);
+  	for(int i = 0; i < s.length; i++) {
+  		out.writeInt(s[i]);
+  	}
   }
 
   public void readFields(DataInput in) throws IOException {
@@ -456,11 +464,23 @@ public abstract class TaskStatus implements Writable, Cloneable {
     }
     nextRecordRange.readFields(in);
     this.numReduceTasks = in.readInt();
+    this.dataVolume = readIntArray(in);
 //    this.dataVolume = new int[numReduceTasks];
 //    for (int i = 0; i < numReduceTasks; i++) {
 //    	this.dataVolume[i] = in.readInt();
 //    }
   }
+  
+  private int[] readIntArray(DataInput in) throws IOException {
+  	int len = in.readInt();
+  	if (len == -1) return null;
+  	int[] s = new int[len];
+  	for(int i = 0; i < len; i++) {
+  		s[i] = in.readInt();
+  	}
+  	return s;
+  }
+
   
   //////////////////////////////////////////////////////////////////////////////
   // Factory-like methods to create/read/write appropriate TaskStatus objects

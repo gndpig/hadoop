@@ -129,6 +129,13 @@ public final class WritableUtils  {
       writeString(out, s[i]);
     }
   }
+  
+  public static void writeIntArray(DataOutput out, int[] s) throws IOException {
+  	out.writeInt(s.length);
+  	for(int i = 0; i < s.length; i++) {
+  		out.writeInt(out, s[i]);
+  	}
+  }
 
   /*
    * Write a String array as a Nework Int N, followed by Int N Byte Array of
@@ -160,6 +167,16 @@ public final class WritableUtils  {
       s[i] = readString(in);
     }
     return s;
+  }
+  
+  public static int[] readIntArray(DataInput in) throws IOException {
+  	int len = in.readInt();
+  	if (len == -1) return null;
+  	int[] s = new int[len];
+  	for(int i = 0; i < len; i++) {
+  		s[i] = in.readInt();
+  	}
+  	return s;
   }
 
 
