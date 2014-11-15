@@ -3916,14 +3916,15 @@ public class TaskTracker implements MRConstants, TaskUmbilicalProtocol,
 	  for(TaskInProgress tip: runningTasks.values()) {
 		  TaskStatus status = tip.getStatus();
 		  status.setIncludeCounters(sendCounters);
-		  status.setTest();
 		  // send counters for finished or failed tasks and commit pending tasks
 		  if (status.getRunState() != TaskStatus.State.RUNNING) {
 			  status.setIncludeCounters(true);
 		  }
 		  if (status.getIsMap()) {
+		  	LOG.info("cloneAndResetRunnningTaskStatusesAndTask");
+		  	MapTask.showArray(status.getTask().dataVolume);
 //			  status.setTask((Task) ((Task) tip.getTask()).clone());
-			  status.setTask((Task) ((Task) tip.getTask()));
+//			  status.setTask((Task) ((Task) tip.getTask()));
 //			  TaskStatus newStatus = (TaskStatus) status.clone();
 //			  newStatus.setMapTask((MapTask)((MapTask) tip.getTask()).clone());
 		  } 

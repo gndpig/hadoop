@@ -63,16 +63,6 @@ public abstract class TaskStatus implements Writable, Cloneable {
   
   private Task task;
   
-  private int test;
-  
-  public void setTest() {
-	  this.test = 1;
-  }
-  
-  public int getTest() {
-	  return test;
-  }
-
   public TaskStatus() {
     taskid = new TaskAttemptID();
     numSlots = 0;
@@ -92,7 +82,6 @@ public abstract class TaskStatus implements Writable, Cloneable {
     this.phase = phase;
     this.counters = counters;
     this.includeCounters = true;
-    this.test = 0;
   }
   
   public TaskAttemptID getTaskID() { return taskid; }
