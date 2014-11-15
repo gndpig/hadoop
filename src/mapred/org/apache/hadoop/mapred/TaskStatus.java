@@ -427,10 +427,10 @@ public abstract class TaskStatus implements Writable, Cloneable {
       counters.write(out);
     }
     nextRecordRange.write(out);
-    for (int i = 0; i < dataVolume.length; i++) {
-    	out.writeInt(dataVolume[i]);
-    }
-    out.writeInt(numReduceTasks);
+//    for (int i = 0; i < dataVolume.length; i++) {
+//    	out.writeInt(dataVolume[i]);
+//    }
+//    out.writeInt(numReduceTasks);
   }
 
   public void readFields(DataInput in) throws IOException {
@@ -450,11 +450,11 @@ public abstract class TaskStatus implements Writable, Cloneable {
       counters.readFields(in);
     }
     nextRecordRange.readFields(in);
-    this.numReduceTasks = in.readInt();
-    this.dataVolume = new int[numReduceTasks];
-    for (int i = 0; i < numReduceTasks; i++) {
-    	this.dataVolume[i] = in.readInt();
-    }
+//    this.numReduceTasks = in.readInt();
+//    this.dataVolume = new int[numReduceTasks];
+//    for (int i = 0; i < numReduceTasks; i++) {
+//    	this.dataVolume[i] = in.readInt();
+//    }
   }
   
   //////////////////////////////////////////////////////////////////////////////
