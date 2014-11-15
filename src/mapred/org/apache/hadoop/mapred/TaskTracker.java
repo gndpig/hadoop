@@ -3689,14 +3689,14 @@ public class TaskTracker implements MRConstants, TaskUmbilicalProtocol,
   throws IOException {
     authorizeJVM(taskid.getJobID());
     TaskInProgress tip = tasks.get(taskid);
-    TaskInProgress runningtip = runningTasks.get(taskid);
-    LOG.info("tip == runnningtip = " + (tip == runningtip));
-    if (runningtip != null) {
+//    TaskInProgress runningtip = runningTasks.get(taskid);
+//    LOG.info("tip == runnningtip = " + (tip == runningtip));
+//    if (runningtip != null) {
 //	    Task task = runningtip.getTask();
 //	    task.dataVolume = dataVolume;
 //	    LOG.info("TaskTracker done dataVolume");
 //	    MapTask.showArray(dataVolume);    	
-    }
+//    }
     if (tip != null) {
       validateJVM(tip, jvmContext, taskid);
       commitResponses.remove(taskid);
@@ -3927,8 +3927,10 @@ public class TaskTracker implements MRConstants, TaskUmbilicalProtocol,
 		  	LOG.info("cloneAndResetRunnningTaskStatusesAndTask");
 		  	if (status.getRunState() == TaskStatus.State.SUCCEEDED) {
 		  		LOG.info("cloneAndResetRunningTaskStatusesAndTask SUCCEEDED");
-		  		LOG.info(tip.getTask());
-			  	//MapTask.showArray(status.getTask().dataVolume);		  		
+		  		Task task = tip.getTask();
+		  		if (task.dataVolume != null) {
+				  	MapTask.showArray(status.getTask().dataVolume);		  				  			
+		  		}
 		  	}
 //			  status.setTask((Task) ((Task) tip.getTask()).clone());
 //			  status.setTask((Task) ((Task) tip.getTask()));
