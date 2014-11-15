@@ -2071,15 +2071,6 @@ public class TaskTracker implements MRConstants, TaskUmbilicalProtocol,
             taskStatus.getRunState() != TaskStatus.State.COMMIT_PENDING &&
             !taskStatus.inTaskCleanupPhase()) {
           if (taskStatus.getIsMap()) {
-        	  if (taskStatus.getRunState() == TaskStatus.State.SUCCEEDED) {
-        		  TaskInProgress tip = runningTasks.get(taskStatus.getTaskID());
-        		  MapTask task = (MapTask)tip.getTask();
-        		  LOG.info("SUCCEEDED Task = " + task);
-        		  int[] dataVolume = task.dataVolume;
-        		  for (int i = 0; i < dataVolume.length; i++) {
-        			  LOG.info("dataVolume (" + i + ") = " + dataVolume[i]);
-        		  }
-        	  }
             mapTotal--;
           } else {
             reduceTotal--;
@@ -3927,23 +3918,14 @@ public class TaskTracker implements MRConstants, TaskUmbilicalProtocol,
 		  if (status.getRunState() != TaskStatus.State.RUNNING) {
 			  status.setIncludeCounters(true);
 		  }
-		  if (status.getIsMap()) {
-		  	LOG.info("cloneAndResetRunnningTaskStatusesAndTask");
-		  	if (status.getRunState() == TaskStatus.State.SUCCEEDED) {
-		  		LOG.info("cloneAndResetRunningTaskStatusesAndTask SUCCEEDED");
-		  		Task task = tip.getTask();
-		  		if (task.isMapTask()) {
-		  			MapTask.showArray(task.dataVolume);
-		  		} else {
-		  			LOG.info("Error MapTask");
-		  		}
-		  	}
+//		  if (status.getIsMap()) {
 //			  status.setTask((Task) ((Task) tip.getTask()).clone());
 //			  status.setTask((Task) ((Task) tip.getTask()));
 //			  TaskStatus newStatus = (TaskStatus) status.clone();
 //			  newStatus.setMapTask((MapTask)((MapTask) tip.getTask()).clone());
-		  } 
-			  result.add((TaskStatus)status.clone());    	  
+//		  }
+		  status.setTask(tip.getTask());
+			result.add((TaskStatus)status.clone());    	  
 
 		  status.clearStatus();
 	  }		  
