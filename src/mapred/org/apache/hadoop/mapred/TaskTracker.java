@@ -3008,13 +3008,6 @@ public class TaskTracker implements MRConstants, TaskUmbilicalProtocol,
         }
       } else {
         this.taskStatus.setRunState(TaskStatus.State.SUCCEEDED);
-        Task task =  this.taskStatus.getTask();
-        if (task.isMapTask()) {
-        	int[] dataVolume = ((MapTask)task).dataVolume;
-        	for (int i = 0; i < dataVolume.length; i++) {
-        		LOG.info("reportDone dataVolume(" + i + ") = " + dataVolume[i]);
-        	}
-        }
       }
       this.taskStatus.setProgress(1.0f);
       this.taskStatus.setFinishTime(System.currentTimeMillis());
@@ -3696,15 +3689,17 @@ public class TaskTracker implements MRConstants, TaskUmbilicalProtocol,
   throws IOException {
     authorizeJVM(taskid.getJobID());
     TaskInProgress tip = tasks.get(taskid);
-    TaskInProgress runningtip = runningTasks.get(taskid);
-    Task task = runningtip.getTask();
-    task.dataVolume = dataVolume;
+//    TaskInProgress runningtip = runningTasks.get(taskid);
+//    Task task = runningtip.getTask();
+//    task.dataVolume = dataVolume;
 //    LOG.info("TaskTracker done dataVolume");
 //    MapTask.showArray(dataVolume);
     if (tip != null) {
       validateJVM(tip, jvmContext, taskid);
       commitResponses.remove(taskid);
       tip.reportDone();
+      Task task = tip.getTask();
+      task.dataVolume = dataVolume;
     } else {
       LOG.warn("Unknown child task done: "+taskid+". Ignored.");
     }  	
