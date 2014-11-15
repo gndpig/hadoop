@@ -166,8 +166,9 @@ abstract public class Task implements Writable, Configurable, Cloneable {
   protected SecretKey tokenSecret;
   protected JvmContext jvmContext;
   
-  //public static int[] dataVolume = new int[3];
+  protected int[] dataVolume;
 
+  
 
 
   ////////////////////////////////////////////
@@ -966,11 +967,15 @@ abstract public class Task implements Writable, Configurable, Cloneable {
     return -1;
   }
 
-  private void sendDone(TaskUmbilicalProtocol umbilical) throws IOException {
+  protected void sendDone(TaskUmbilicalProtocol umbilical) throws IOException {
     int retries = MAX_RETRIES;
     while (true) {
       try {
-        umbilical.done(getTaskID(), jvmContext);
+      	if (isMapTask()) {
+          umbilical.done(getTaskID(), jvmContext, dataVolume);
+      	} else {
+          umbilical.done(getTaskID(), jvmContext);      		
+      	}
         LOG.info("Task '" + taskId + "' done.");
         return;
       } catch (IOException ie) {

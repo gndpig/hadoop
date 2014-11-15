@@ -2031,7 +2031,7 @@ public class TaskTracker implements MRConstants, TaskUmbilicalProtocol,
       }
     }
     
-
+/*
     List<TaskStatus> list = status.getTaskReports();
     for (TaskStatus status : list) {
     	if (status.getIsMap()) {
@@ -2051,6 +2051,7 @@ public class TaskTracker implements MRConstants, TaskUmbilicalProtocol,
         	}    		
     	}
     }
+    */
        
     //
     // Xmit the heartbeat
@@ -3708,6 +3709,21 @@ public class TaskTracker implements MRConstants, TaskUmbilicalProtocol,
     } else {
       LOG.warn("Unknown child task done: "+taskid+". Ignored.");
     }
+  }
+  
+  public synchronized void done(TaskAttemptID taskid, JvmContext jvmContext, int[] dataVolume)
+  throws IOException {
+    authorizeJVM(taskid.getJobID());
+    TaskInProgress tip = tasks.get(taskid);
+    LOG.info("TaskTracker done dataVolume");
+    MapTask.showArray(dataVolume);
+    if (tip != null) {
+      validateJVM(tip, jvmContext, taskid);
+      commitResponses.remove(taskid);
+      tip.reportDone();
+    } else {
+      LOG.warn("Unknown child task done: "+taskid+". Ignored.");
+    }  	
   }
 
 
