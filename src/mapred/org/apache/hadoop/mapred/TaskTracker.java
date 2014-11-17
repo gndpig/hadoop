@@ -3006,6 +3006,7 @@ public class TaskTracker implements MRConstants, TaskUmbilicalProtocol,
         this.taskStatus.setRunState(TaskStatus.State.SUCCEEDED);
         LOG.info("reportDone");
         if (this.getTask().isMapTask()) {
+        	LOG.info(this.taskStatus.getPhase());
         	MapTask.showArray(this.getTask().dataVolume);
         }
       }
