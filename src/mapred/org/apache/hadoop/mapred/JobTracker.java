@@ -2934,6 +2934,7 @@ public class JobTracker implements MRConstants, InterTrackerProtocol,
     throws IOException {
   	
   	List<TaskStatus> list = status.getTaskReports();
+  	LOG.info("JobTracker taskStatus dataVolume");
   	for (TaskStatus taskSatus : list) {
   		MapTask.showArray(taskSatus.getDataVolume());
   	}

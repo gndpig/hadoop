@@ -61,10 +61,8 @@ public abstract class TaskStatus implements Writable, Cloneable {
   private boolean includeCounters;
   private SortedRanges.Range nextRecordRange = new SortedRanges.Range();
   
-//  private Task task;
-  
+  // タスクごとのデータ量
   private int[] dataVolume = {};
-  private int numReduceTasks = 0;
   
   public TaskStatus() {
     taskid = new TaskAttemptID();
@@ -403,15 +401,7 @@ public abstract class TaskStatus implements Writable, Cloneable {
   public int[] getDataVolume() {
   	return this.dataVolume;
   }
-  
-  public void setNumReduceTasks(int numReduceTasks) {
-  	this.numReduceTasks = numReduceTasks;
-  }
-  
-  public int getNumReduceTasks() {
-  	return this.numReduceTasks;
-  }
-  
+    
   //////////////////////////////////////////////
   // Writable
   //////////////////////////////////////////////
@@ -431,12 +421,7 @@ public abstract class TaskStatus implements Writable, Cloneable {
       counters.write(out);
     }
     nextRecordRange.write(out);
-    out.writeInt(numReduceTasks);
     writeIntArray(out, dataVolume);
-
-//    for (int i = 0; i < dataVolume.length; i++) {
-//    	out.writeInt(dataVolume[i]);
-//    }
   }
   
   private void writeIntArray(DataOutput out, int[] s) throws IOException {
@@ -463,12 +448,7 @@ public abstract class TaskStatus implements Writable, Cloneable {
       counters.readFields(in);
     }
     nextRecordRange.readFields(in);
-    this.numReduceTasks = in.readInt();
     this.dataVolume = readIntArray(in);
-//    this.dataVolume = new int[numReduceTasks];
-//    for (int i = 0; i < numReduceTasks; i++) {
-//    	this.dataVolume[i] = in.readInt();
-//    }
   }
   
   private int[] readIntArray(DataInput in) throws IOException {
