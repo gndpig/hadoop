@@ -1960,19 +1960,16 @@ public class TaskTracker implements MRConstants, TaskUmbilicalProtocol,
     //
     if (status == null) {
       synchronized (this) {
-    	//taskStatus1 = cloneAndResetRunningTaskStatusesAndTask2(sendCounters);
         status = new TaskTrackerStatus(taskTrackerName, localHostname, 
                                        httpPort, 
                                        //cloneAndResetRunningTaskStatuses(
                                          //sendCounters),
                                        cloneAndResetRunningTaskStatusesAndTask(sendCounters),
-                                       //new ArrayList<TaskStatus>(taskStatus1.keySet()),
                                        taskFailures,
                                        localStorage.numFailures(),
                                        maxMapSlots,
                                        maxReduceSlots                                       
                                        );
-                                       //new ArrayList<Task>(taskStatus.values())); 
       }
 
     } else {
@@ -2030,6 +2027,13 @@ public class TaskTracker implements MRConstants, TaskUmbilicalProtocol,
         healthStatus.setHealthReport("");
       }
     }
+    
+  	List<TaskStatus> list = status.getTaskReports();
+  	LOG.info("ToskTracker taskStatus dataVolume");
+  	for (TaskStatus taskSatus : list) {
+  		LOG.info("Task = " + taskSatus.getTaskID());
+  		MapTask.showArray(taskSatus.getDataVolume());
+  	}    
     
            
     //
@@ -3919,13 +3923,6 @@ public class TaskTracker implements MRConstants, TaskUmbilicalProtocol,
 		  if (status.getRunState() != TaskStatus.State.RUNNING) {
 			  status.setIncludeCounters(true);
 		  }
-//		  if (status.getIsMap()) {
-//			  status.setTask((Task) ((Task) tip.getTask()).clone());
-//			  status.setTask((Task) ((Task) tip.getTask()));
-//			  TaskStatus newStatus = (TaskStatus) status.clone();
-//			  newStatus.setMapTask((MapTask)((MapTask) tip.getTask()).clone());
-//		  }
-//		  status.setTask((Task)tip.getTask().clone());
 		  TaskStatus newStatus = (TaskStatus)status.clone();
 		  if (status.getIsMap()) {
 			  if (status.getRunState() == TaskStatus.State.SUCCEEDED) {
