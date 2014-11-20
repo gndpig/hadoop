@@ -1157,6 +1157,7 @@ public class JobInProgress {
         taskEvent.setTaskRunTime((int)(status.getFinishTime() 
                                        - status.getStartTime()));
         tip.setSuccessEventNumber(taskCompletionEventTracker);
+        // taskTracker 毎の dataVolumes の更新
         if (status.getIsMap()) {
         	String taskTrackerName = status.getTaskTracker();
         	int[] dataVolume = status.getDataVolume();
@@ -1169,8 +1170,8 @@ public class JobInProgress {
         	} else {
           	this.dataVolumes.put(taskTrackerName, dataVolume);        		
         	}
-        	LOG.info("JobInProgress taskTracker = " + taskTrackerName);
-        	MapTask.showArray(this.dataVolumes.get(taskTrackerName));
+        	//LOG.info("JobInProgress taskTracker = " + taskTrackerName);
+        	//MapTask.showArray(this.dataVolumes.get(taskTrackerName));
         }
       } else if (state == TaskStatus.State.COMMIT_PENDING) {
         // If it is the first attempt reporting COMMIT_PENDING
