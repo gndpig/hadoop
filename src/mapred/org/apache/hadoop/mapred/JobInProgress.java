@@ -1169,30 +1169,8 @@ public class JobInProgress {
         	} else {
           	this.dataVolumes.put(taskTrackerName, dataVolume);        		
         	}
+        	LOG.info("JobInProgress taskTracker = " + taskTrackerName);
         	MapTask.showArray(this.dataVolumes.get(taskTrackerName));
-        	/*
-        	
-            // タスクの取得
-            MapTask task = (MapTask) status.getMapTask();
-            String taskTrackerName = taskTracker.getTrackerName();
-            LOG.info("task = " + task);
-            LOG.info("taskTrackerName = " + taskTrackerName);
-            */
-            /*
-            if (task != null) {
-                int[] taskDataVolume = task.getDataVolume();            	
-                int[] oldDataVolume = dataVolumes.get(taskTrackerName);
-                if (oldDataVolume != null) {
-                	for (int i = 0; i < taskDataVolume.length; i++) {
-                		oldDataVolume[i] += taskDataVolume[i];
-                	}
-                	dataVolumes.put(taskTrackerName, oldDataVolume);
-                } else {
-                	dataVolumes.put(taskTrackerName, taskDataVolume);
-                }
-            	show(dataVolumes);
-            }
-            */
         }
       } else if (state == TaskStatus.State.COMMIT_PENDING) {
         // If it is the first attempt reporting COMMIT_PENDING
