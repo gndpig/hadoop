@@ -2933,12 +2933,15 @@ public class JobTracker implements MRConstants, InterTrackerProtocol,
                                                   short responseId) 
     throws IOException {
   	
+  	/*
+  	 * TaskTracker から受け取った dataVolume の確認
   	List<TaskStatus> list = status.getTaskReports();
   	LOG.info("JobTracker taskStatus dataVolume");
   	for (TaskStatus taskSatus : list) {
   		LOG.info("Task = " + taskSatus.getTaskID());
   		MapTask.showArray(taskSatus.getDataVolume());
   	}
+  	*/
 	 
     if (LOG.isDebugEnabled()) {
       LOG.debug("Got heartbeat from: " + status.getTrackerName() + 
@@ -3078,30 +3081,6 @@ public class JobTracker implements MRConstants, InterTrackerProtocol,
     return response;
   }
   
-  /**
-   * Test heartbeat program
-   */
-  public synchronized HeartbeatResponse heartbeat(TaskTrackerStatus status, 
-          boolean restarted,
-          boolean initialContact,
-          boolean acceptNewTasks, 
-          short responseId,
-          String name)
-  throws IOException {
-	  LOG.info("Test heartbeat name = " + name);
-	  return heartbeat(status, restarted, initialContact, acceptNewTasks, responseId);
-  }
- 
-  public synchronized HeartbeatResponse heartbeat(TaskTrackerStatus status, 
-          boolean restarted,
-          boolean initialContact,
-          boolean acceptNewTasks, 
-          short responseId,
-          List<Task> tasks)
-  throws IOException {
-	  LOG.info("Tasks = " + tasks);
-	  return heartbeat(status, restarted, initialContact, acceptNewTasks, responseId);
-  }
   
   /**
    * Calculates next heartbeat interval using cluster size.
@@ -4459,6 +4438,7 @@ public class JobTracker implements MRConstants, InterTrackerProtocol,
         expireLaunchingTasks.removeTask(taskId);
       }
       
+      // JobInProgress の取得
       JobInProgress job = getJob(taskId.getJobID());
       if (job == null) {
         // if job is not there in the cleanup list ... add it
@@ -4501,6 +4481,7 @@ public class JobTracker implements MRConstants, InterTrackerProtocol,
         // or TaskInProgress can modify this object and
         // the changes should not get reflected in TaskTrackerStatus.
         // An old TaskTrackerStatus is used later in countMapTasks, etc.
+        // タスクのステータスの変更
         job.updateTaskStatus(tip, (TaskStatus)report.clone());
         JobStatus newStatus = (JobStatus)job.getStatus().clone();
         

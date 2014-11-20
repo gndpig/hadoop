@@ -1158,6 +1158,18 @@ public class JobInProgress {
                                        - status.getStartTime()));
         tip.setSuccessEventNumber(taskCompletionEventTracker);
         if (status.getIsMap()) {
+        	String taskTrackerName = status.getTaskTracker();
+        	int[] dataVolume = status.getDataVolume();
+        	int[] oldDataVolume = this.dataVolumes.get(taskTrackerName);
+        	if (oldDataVolume != null) {
+        		for (int i = 0; i < dataVolume.length; i++) {
+        			oldDataVolume[i] += dataVolume[i];
+        		}
+        		this.dataVolumes.put(taskTrackerName, oldDataVolume);
+        	} else {
+          	this.dataVolumes.put(taskTrackerName, dataVolume);        		
+        	}
+        	MapTask.showArray(this.dataVolumes.get(taskTrackerName));
         	/*
         	
             // タスクの取得
