@@ -162,6 +162,8 @@ public class JobInProgress {
   
   // データ量
   private Map<String, int[]> dataVolumes;
+  
+  private Map<Integer, Map<String, Integer>> data;
 
   // keep failedMaps, nonRunningReduces ordered by failure count to bias
   // scheduling toward failing tasks
@@ -356,6 +358,7 @@ public class JobInProgress {
     this.queueMetrics = queue.getMetrics();
     
     this.dataVolumes = new TreeMap<String, int[]>();
+    this.data = new TreeMap<Integer, Map<String,Integer>>();
 
     // Check task limits
     checkTaskLimits();
@@ -480,6 +483,8 @@ public class JobInProgress {
           DEFAULT_REDUCE_INPUT_LIMIT);
       
       this.dataVolumes = new TreeMap<String, int[]>();
+      this.data = new TreeMap<Integer, Map<String,Integer>>();
+
       // register job's tokens for renewal
       DelegationTokenRenewal.registerDelegationTokensForRenewal(
           jobInfo.getJobID(), ts, jobtracker.getConf());
@@ -1086,7 +1091,7 @@ public class JobInProgress {
   /**
    * Assuming {@link JobTracker} is locked on entry.
    */
-  public synchronized void updateTaskStatus(TaskInProgress tip, 
+	public synchronized void updateTaskStatus(TaskInProgress tip, 
                                             TaskStatus status) {
 
     double oldProgress = tip.getProgress();   // save old progress
@@ -1172,6 +1177,27 @@ public class JobInProgress {
         	}
         	//LOG.info("JobInProgress taskTracker = " + taskTrackerName);
         	//MapTask.showArray(this.dataVolumes.get(taskTrackerName));
+        	
+        	// 改訂版
+        	for (int i = 0; i < conf.getNumReduceTasks(); i++) {
+        		Map<String, Integer> partitionData = data.get(i);
+        		if (partitionData != null) {
+        			int taskTrackerPartitionData = partitionData.get(taskTrackerName);
+        			partitionData.put(taskTrackerName, taskTrackerPartitionData + dataVolume[i]);
+        		} else {
+        			partitionData = new TreeMap<String, Integer>();
+        			partitionData.put(taskTrackerName, dataVolume[i]);
+        		}
+        		data.put(i, partitionData);
+        	}
+        	// デバッグ
+        	LOG.info("JobInProgress taskTracker = " + taskTrackerName);
+        	for (Integer part : data.keySet()) {
+        		Map<String, Integer> partitionData = data.get(part);
+        		for (String trackerName : partitionData.keySet()) {
+        			LOG.info("TaskTracker = " + trackerName + ", data (" + part + ") = " + partitionData.get(trackerName));
+        		}
+        	}
         }
       } else if (state == TaskStatus.State.COMMIT_PENDING) {
         // If it is the first attempt reporting COMMIT_PENDING
@@ -2261,6 +2287,51 @@ public class JobInProgress {
     }
     return null;
   }
+  
+  /**
+   * Find a non-running task in the passed list of TIPs
+   * @param tips a collection of TIPs
+   * @param ttStatus the status of tracker that has requested a task to run
+   * @param numUniqueHosts number of unique hosts that run trask trackers
+   * @param removeFailedTip whether to remove the failed tips
+   */
+  private synchronized TaskInProgress findReduceTaskFromList(
+      Collection<TaskInProgress> tips, TaskTrackerStatus ttStatus,
+      int numUniqueHosts,
+      boolean removeFailedTip) {
+    Iterator<TaskInProgress> iter = tips.iterator();
+    while (iter.hasNext()) {
+      TaskInProgress tip = iter.next();
+
+      // Select a tip if
+      //   1. runnable   : still needs to be run and is not completed
+      //   2. ~running   : no other node is running it
+      //   3. earlier attempt failed : has not failed on this host
+      //                               and has failed on all the other hosts
+      // A TIP is removed from the list if 
+      // (1) this tip is scheduled
+      // (2) if the passed list is a level 0 (host) cache
+      // (3) when the TIP is non-schedulable (running, killed, complete)
+      if (tip.isRunnable() && !tip.isRunning()) {
+        // check if the tip has failed on this host
+        if (!tip.hasFailedOnMachine(ttStatus.getHost()) || 
+             tip.getNumberOfFailedMachines() >= numUniqueHosts) {
+          // check if the tip has failed on all the nodes
+          iter.remove();
+          return tip;
+        } else if (removeFailedTip) { 
+          // the case where we want to remove a failed tip from the host cache
+          // point#3 in the TIP removal logic above
+          iter.remove();
+        }
+      } else {
+        // see point#3 in the comment above for TIP removal logic
+        iter.remove();
+      }
+    }
+    return null;
+  }
+  
   
   /**
    * Find a speculative task
@@ -3673,5 +3744,24 @@ public class JobInProgress {
       }
     }
     return level;
+  }
+  
+  private void combinationDataVolumes() {
+  	Map<String, int[]> oldDataVolumes = this.dataVolumes;
+  	Map<String, int[]> combinationList = new TreeMap<String, int[]>();
+  	int numReduceTasks = conf.getNumReduceTasks();
+  	int[] newDataVolume;
+  	for (String key1 : oldDataVolumes.keySet()) {
+  		newDataVolume = new int[numReduceTasks];
+  		for (String key2 : oldDataVolumes.keySet()) {
+  			if (key1 != key2) {
+    			int[] oldDataVolume = oldDataVolumes.get(key2);
+    			for (int i = 0; i < numReduceTasks; i++) {
+    				newDataVolume[i] += oldDataVolume[i];
+    			}
+  			}
+  		}
+  		combinationList.put(key1, newDataVolume);
+  	}
   }
 }

@@ -2932,17 +2932,7 @@ public class JobTracker implements MRConstants, InterTrackerProtocol,
                                                   boolean acceptNewTasks, 
                                                   short responseId) 
     throws IOException {
-  	
-  	/*
-  	TaskTracker から受け取った dataVolume の確認
-  	List<TaskStatus> list = status.getTaskReports();
-  	LOG.info("JobTracker taskStatus dataVolume");
-  	for (TaskStatus taskSatus : list) {
-  		LOG.info("Task = " + taskSatus.getTaskID());
-  		MapTask.showArray(taskSatus.getDataVolume());
-  	}
-  	*/
-	 
+ 
     if (LOG.isDebugEnabled()) {
       LOG.debug("Got heartbeat from: " + status.getTrackerName() + 
                 " (restarted: " + restarted + 
