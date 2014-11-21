@@ -1182,8 +1182,12 @@ public class JobInProgress {
         	for (int i = 0; i < conf.getNumReduceTasks(); i++) {
         		Map<String, Integer> partitionData = data.get(i);
         		if (partitionData != null) {
-        			int taskTrackerPartitionData = partitionData.get(taskTrackerName);
-        			partitionData.put(taskTrackerName, taskTrackerPartitionData + dataVolume[i]);
+        			Integer taskTrackerPartitionData = partitionData.get(taskTrackerName);
+        			if (taskTrackerPartitionData != null) {
+          			partitionData.put(taskTrackerName, taskTrackerPartitionData + dataVolume[i]);        				
+        			} else {
+          			partitionData.put(taskTrackerName, dataVolume[i]);        				        				
+        			}
         		} else {
         			partitionData = new TreeMap<String, Integer>();
         			partitionData.put(taskTrackerName, dataVolume[i]);
