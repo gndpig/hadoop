@@ -604,7 +604,9 @@ class MapTask extends Task {
         // 中間データの Partition の情報を得る
         int part = partitioner.getPartition(key, value, numPartitions);
         if (part >= 0) {
-          dataVolume[part] += getByte(key.toString() + value.toString());        	
+          dataVolume[part] += getByte(key.toString() + value.toString());
+          LOG.info("key = " + getByte(key.toString()) + ", value = " + getByte(value.toString()));
+          MapTask.showArray(dataVolume);
         }
         //MapTask.showArray(dataVolume);
         collector.collect(key, value, part);
