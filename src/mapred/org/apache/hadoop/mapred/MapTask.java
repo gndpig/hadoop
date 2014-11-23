@@ -163,6 +163,7 @@ class MapTask extends Task {
   public void setConf(Configuration conf) {
 	  super.setConf(conf);
 	  this.dataVolume = new int[this.conf.getNumReduceTasks()];
+	  LOG.info("setConf dataVolume size = " + dataVolume.length);
   }
 
   /**
@@ -603,7 +604,8 @@ class MapTask extends Task {
         // 古い API を使用した場合
         // 中間データの Partition の情報を得る
         int part = partitioner.getPartition(key, value, numPartitions);
-        dataVolume[part] += getByte(key.toString() + value.toString());			
+        //dataVolume[part] += getByte(key.toString() + value.toString());
+        LOG.info("MapTask collect part = " + part + ", dataVolume = " + dataVolume.length);
         MapTask.showArray(dataVolume);
         collector.collect(key, value, part);
         //collector.collect(key, value,
