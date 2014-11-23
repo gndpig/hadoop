@@ -607,6 +607,7 @@ class MapTask extends Task {
           dataVolume[part] += getByte(key.toString() + value.toString());
           LOG.info("key = " + getByte(key.toString()) + ", value = " + getByte(value.toString()));
           MapTask.showArray(dataVolume);
+          LOG.info("Partitioner = " + partitioner.getClass());
         }
         //MapTask.showArray(dataVolume);
         collector.collect(key, value, part);
