@@ -2299,11 +2299,14 @@ public class JobInProgress {
       Collection<TaskInProgress> tips, TaskTrackerStatus ttStatus,
       int numUniqueHosts,
       boolean removeFailedTip) {
+  	LOG.info("findReduceTaskFromList");
   	Map<String, Integer> planAssignList = planAssignList();
   	if (planAssignList != null) {
+  		LOG.info("planAssignList = not null");
     	Integer assignPart = planAssignList.get(ttStatus.getTrackerName());
     	
     	if (assignPart != null) {
+    		LOG.info("assignPart = not null");
       	for (TaskInProgress tip : tips) {
       		if (tip.getPartition() == assignPart) {
       			LOG.info("assignPart = " + assignPart + ", tip = " + tip);
