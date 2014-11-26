@@ -169,7 +169,7 @@ public class JobInProgress {
   
   // Reduce タスクの割り当て済みタスクとノードの一覧
   private Map<String, Integer> assignList;
-  private Map<Integer, Integer> maxAndPartition;
+  private Map<Integer, Integer> maxAndPartition = new HashMap<Integer, Integer>();
 
   // keep failedMaps, nonRunningReduces ordered by failure count to bias
   // scheduling toward failing tasks
@@ -1172,6 +1172,7 @@ public class JobInProgress {
         if (status.getIsMap()) {
         	String taskTrackerName = status.getTaskTracker();
         	int[] dataVolume = status.getDataVolume();
+/*
         	int[] oldDataVolume = this.dataVolumes.get(taskTrackerName);
         	if (oldDataVolume != null) {
         		for (int i = 0; i < dataVolume.length; i++) {
@@ -1181,6 +1182,7 @@ public class JobInProgress {
         	} else {
           	this.dataVolumes.put(taskTrackerName, dataVolume);        		
         	}
+        	*/
         	//LOG.info("JobInProgress taskTracker = " + taskTrackerName);
         	//MapTask.showArray(this.dataVolumes.get(taskTrackerName));
         	
@@ -3785,6 +3787,7 @@ public class JobInProgress {
   }
   
 	public Map<Integer, Map<String, Integer>> calculateData() {
+		LOG.info("calculateData");
 		Map<Integer, Map<String, Integer>> result = new TreeMap<Integer, Map<String,Integer>>();
 //		Map<Integer, Integer> maxAndPartition = new HashMap<Integer, Integer>();
 		
@@ -3813,6 +3816,7 @@ public class JobInProgress {
 	}
 	
 	public Map<Integer, Map<String, Integer>> sortCalculateData() {
+		LOG.info("sortCalculateData");
 		Map<Integer, Map<String, Integer>> calculateData = calculateData();
 		Map<Integer, Map<String, Integer>> result = new TreeMap<Integer, Map<String,Integer>>();
 		
@@ -3865,9 +3869,9 @@ public class JobInProgress {
 			}
 			assignList = planAssignList;			
 		} else {
-			System.out.println("assignList = not null");
 		}
-		return assignList;
+//		return assignList;
+		return null;
 	}
   
 }
