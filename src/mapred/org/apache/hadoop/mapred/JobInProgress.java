@@ -164,6 +164,9 @@ public class JobInProgress {
   private Map<String, int[]> dataVolumes;
   
   private Map<Integer, Map<String, Integer>> data;
+  
+  // Reduce タスクの割り当て済みタスクとノードの一覧
+  private Map<Integer, String> assignedTaskAndNode;
 
   // keep failedMaps, nonRunningReduces ordered by failure count to bias
   // scheduling toward failing tasks
@@ -1300,18 +1303,6 @@ public class JobInProgress {
       }
     }
   }
-  
-  private void show(Map<String, int[]> map) {
-	  for (String key : map.keySet()) {
-		  arrayShow(key, map.get(key));
-	  }
-  }
-  
-  private void arrayShow(String key, int[] data) {
-	  for (int i = 0; i < data.length; i++) {
-		  LOG.info(key + " (" + i + ") " + data[i]);
-	  }
-  }
 
   String getHistoryFile() {
     return historyFile;
@@ -2335,6 +2326,41 @@ public class JobInProgress {
     }
     return null;
   }
+  
+	public Map<String, Integer> calculateMaxPartitionData() {
+		Map<Integer, Map<String, Integer>> result = new TreeMap<Integer, Map<String,Integer>>();
+		int maxPart = 0;
+		int max = 0;
+		
+		for (Integer part : data.keySet()) {
+			Map<String, Integer> partitionResult = new TreeMap<String, Integer>();
+			Map<String, Integer> partitionData = data.get(part);
+
+			for (String taskTrackerName : partitionData.keySet()) {
+				int dataVolume = 0;
+				for (String taskTrackerName1 : partitionData.keySet()) {
+					if (taskTrackerName != taskTrackerName1) {
+						dataVolume += partitionData.get(taskTrackerName1);
+					}
+				}
+				if (max < dataVolume) {
+					maxPart = part;
+					max = dataVolume;
+				}
+				partitionResult.put(taskTrackerName, dataVolume);
+			}
+			result.put(part, partitionResult);
+		}
+		return result.get(maxPart);
+	}
+	
+	public void removePartition(Integer partition) {
+		assignedTaskAndNode.remove(partition);
+	}
+	
+	public void assignReduceTask(Integer partition, String taskTrackerName) {
+		assignedTaskAndNode.put(partition, taskTrackerName);
+	}
   
   
   /**
