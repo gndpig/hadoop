@@ -3854,10 +3854,15 @@ public class JobInProgress {
 				return ((Integer)entry2.getValue()).compareTo((Integer)entry1.getValue());
 			}
 		});
+		
+		for (Entry<Integer, Integer> list : entries) {
+			LOG.info("part = " + list.getKey() + ", max = " + list.getValue());
+		}
 		return entries;
 	}
 	
 	public Map<String, Integer> planAssignList() {
+		LOG.info("planAssignList");
 		if (assignList == null) {
 			// 割り当てノードとタスクの組み合わせリスト
 			Map<String, Integer> planAssignList = new HashMap<String, Integer>();
@@ -3870,6 +3875,7 @@ public class JobInProgress {
 				for (String taskTracker : partitionData.keySet()) {
 	    		if (!planAssignList.containsKey(taskTracker)) {
 	    			planAssignList.put(taskTracker, sortMaxAndPartition.getKey());
+	    			LOG.info("taskTracker = " + taskTracker + ", part = " + sortMaxAndPartition.getKey());
 	    			break;
 	    		}
 				}
