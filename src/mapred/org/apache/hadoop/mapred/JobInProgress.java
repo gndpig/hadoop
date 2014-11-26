@@ -3886,8 +3886,7 @@ public class JobInProgress {
 			assignList = planAssignList;			
 		} else {
 		}
-//		return assignList;
-		return null;
+		return assignList;
 	}
   
 }
