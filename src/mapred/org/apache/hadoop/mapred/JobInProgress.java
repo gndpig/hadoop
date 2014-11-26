@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.security.PrivilegedExceptionAction;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.EnumMap;
 import java.util.HashMap;
@@ -36,6 +37,7 @@ import java.util.SortedSet;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.Vector;
+import java.util.Map.Entry;
 import java.net.UnknownHostException;
 
 import org.apache.commons.logging.Log;
@@ -166,7 +168,8 @@ public class JobInProgress {
   private Map<Integer, Map<String, Integer>> data;
   
   // Reduce タスクの割り当て済みタスクとノードの一覧
-  private Map<Integer, String> assignedTaskAndNode;
+  private Map<String, Integer> assignList;
+  private Map<Integer, Integer> maxAndPartition;
 
   // keep failedMaps, nonRunningReduces ordered by failure count to bias
   // scheduling toward failing tasks
@@ -2294,36 +2297,29 @@ public class JobInProgress {
       Collection<TaskInProgress> tips, TaskTrackerStatus ttStatus,
       int numUniqueHosts,
       boolean removeFailedTip) {
-    Iterator<TaskInProgress> iter = tips.iterator();
-    while (iter.hasNext()) {
-      TaskInProgress tip = iter.next();
-
-      // Select a tip if
-      //   1. runnable   : still needs to be run and is not completed
-      //   2. ~running   : no other node is running it
-      //   3. earlier attempt failed : has not failed on this host
-      //                               and has failed on all the other hosts
-      // A TIP is removed from the list if 
-      // (1) this tip is scheduled
-      // (2) if the passed list is a level 0 (host) cache
-      // (3) when the TIP is non-schedulable (running, killed, complete)
-      if (tip.isRunnable() && !tip.isRunning()) {
-        // check if the tip has failed on this host
-        if (!tip.hasFailedOnMachine(ttStatus.getHost()) || 
-             tip.getNumberOfFailedMachines() >= numUniqueHosts) {
-          // check if the tip has failed on all the nodes
-          iter.remove();
-          return tip;
-        } else if (removeFailedTip) { 
-          // the case where we want to remove a failed tip from the host cache
-          // point#3 in the TIP removal logic above
-          iter.remove();
-        }
-      } else {
-        // see point#3 in the comment above for TIP removal logic
-        iter.remove();
-      }
-    }
+  	
+  	Integer assignPart = planAssignList().get(ttStatus.getTrackerName());
+  	
+  	if (assignPart != null) {
+    	for (TaskInProgress tip : tips) {
+    		if (tip.getPartition() == assignPart) {
+          if (tip.isRunnable() && !tip.isRunning()) {
+            // check if the tip has failed on this host
+            if (!tip.hasFailedOnMachine(ttStatus.getHost()) || 
+                 tip.getNumberOfFailedMachines() >= numUniqueHosts) {
+              // check if the tip has failed on all the nodes
+              return tip;
+            } else if (removeFailedTip) { 
+              // the case where we want to remove a failed tip from the host cache
+              // point#3 in the TIP removal logic above
+            }
+          } else {
+          }
+    			break;
+    			
+    		}
+    	}
+  	}  	
     return null;
   }
   
@@ -2352,16 +2348,7 @@ public class JobInProgress {
 			result.put(part, partitionResult);
 		}
 		return result.get(maxPart);
-	}
-	
-	public void removePartition(Integer partition) {
-		assignedTaskAndNode.remove(partition);
-	}
-	
-	public void assignReduceTask(Integer partition, String taskTrackerName) {
-		assignedTaskAndNode.put(partition, taskTrackerName);
-	}
-  
+	}	
   
   /**
    * Find a speculative task
@@ -2666,7 +2653,8 @@ public class JobInProgress {
 
     // 1. check for a never-executed reduce tip
     // reducers don't have a cache and so pass -1 to explicitly call that out
-    tip = findTaskFromList(nonRunningReduces, tts, numUniqueHosts, false);
+//    tip = findTaskFromList(nonRunningReduces, tts, numUniqueHosts, false);
+    tip = findReduceTaskFromList(nonRunningReduces, tts, numUniqueHosts, false);
     if (tip != null) {
       scheduleReduce(tip);
       return tip.getIdWithinJob();
@@ -3794,4 +3782,91 @@ public class JobInProgress {
   		combinationList.put(key1, newDataVolume);
   	}
   }
+  
+	public Map<Integer, Map<String, Integer>> calculateData() {
+		Map<Integer, Map<String, Integer>> result = new TreeMap<Integer, Map<String,Integer>>();
+//		Map<Integer, Integer> maxAndPartition = new HashMap<Integer, Integer>();
+		
+		for (Integer part : data.keySet()) {
+			int max = 0;
+
+			Map<String, Integer> partitionResult = new TreeMap<String, Integer>();
+			Map<String, Integer> partitionData = data.get(part);
+
+			for (String taskTrackerName : partitionData.keySet()) {
+				int dataVolume = 0;
+				for (String taskTrackerName1 : partitionData.keySet()) {
+					if (taskTrackerName != taskTrackerName1) {
+						dataVolume += partitionData.get(taskTrackerName1);
+					}
+				}
+				if (max < dataVolume) {
+					max = dataVolume;
+				}
+				partitionResult.put(taskTrackerName, dataVolume);
+			}
+			maxAndPartition.put(part, max);
+			result.put(part, partitionResult);
+		}
+		return result;
+	}
+	
+	public Map<Integer, Map<String, Integer>> sortCalculateData() {
+		Map<Integer, Map<String, Integer>> calculateData = calculateData();
+		Map<Integer, Map<String, Integer>> result = new TreeMap<Integer, Map<String,Integer>>();
+		
+		for (Integer part : calculateData.keySet()) {
+			Map<String, Integer> partitionData = calculateData.get(part);
+			Map<String, Integer> partitionResult = new HashMap<String, Integer>();
+			List<Map.Entry<String, Integer>> entries = new ArrayList<Map.Entry<String,Integer>>(partitionData.entrySet());
+			Collections.sort(entries, new Comparator<Map.Entry<String, Integer>>() {
+				@Override
+				public int compare(Entry<String, Integer> entry1, Entry<String, Integer> entry2) {
+					return ((Integer)entry1.getValue()).compareTo((Integer)entry2.getValue());
+				}
+				
+			});
+      for (Entry<String, Integer> s : entries) {
+      	partitionResult.put(s.getKey(), s.getValue());
+      }
+      result.put(part, partitionResult);
+		}
+		return result;		
+	}
+	
+	public List<Map.Entry<Integer, Integer>> sortMaxAndPartitionList() {
+		List<Map.Entry<Integer, Integer>> entries = new ArrayList<Map.Entry<Integer,Integer>>(maxAndPartition.entrySet());
+		Collections.sort(entries, new Comparator<Map.Entry<Integer, Integer>>() {
+			@Override
+			public int compare(Entry<Integer, Integer> entry1, Entry<Integer, Integer> entry2) {
+				return ((Integer)entry2.getValue()).compareTo((Integer)entry1.getValue());
+			}
+		});
+		return entries;
+	}
+	
+	public Map<String, Integer> planAssignList() {
+		if (assignList == null) {
+			// 割り当てノードとタスクの組み合わせリスト
+			Map<String, Integer> planAssignList = new HashMap<String, Integer>();
+			// ソートした転送データ
+			Map<Integer, Map<String, Integer>> sortCalculateData = sortCalculateData();
+			// データ転送量が多い順でソートしたタスクリスト
+			List<Map.Entry<Integer, Integer>> sortMaxAndPartitionList = sortMaxAndPartitionList();
+			for (Entry<Integer, Integer> sortMaxAndPartition : sortMaxAndPartitionList) {
+				Map<String, Integer> partitionData = sortCalculateData.get(sortMaxAndPartition.getKey());
+				for (String taskTracker : partitionData.keySet()) {
+	    		if (!planAssignList.containsKey(taskTracker)) {
+	    			planAssignList.put(taskTracker, sortMaxAndPartition.getKey());
+	    			break;
+	    		}
+				}
+			}
+			assignList = planAssignList;			
+		} else {
+			System.out.println("assignList = not null");
+		}
+		return assignList;
+	}
+  
 }
