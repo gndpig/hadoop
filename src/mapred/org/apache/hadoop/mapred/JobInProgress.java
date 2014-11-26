@@ -2303,6 +2303,7 @@ public class JobInProgress {
   	if (assignPart != null) {
     	for (TaskInProgress tip : tips) {
     		if (tip.getPartition() == assignPart) {
+    			LOG.info("assignPart = " + assignPart + ", tip = " + tip);
           if (tip.isRunnable() && !tip.isRunning()) {
             // check if the tip has failed on this host
             if (!tip.hasFailedOnMachine(ttStatus.getHost()) || 
@@ -2653,8 +2654,8 @@ public class JobInProgress {
 
     // 1. check for a never-executed reduce tip
     // reducers don't have a cache and so pass -1 to explicitly call that out
-//    tip = findTaskFromList(nonRunningReduces, tts, numUniqueHosts, false);
-    tip = findReduceTaskFromList(nonRunningReduces, tts, numUniqueHosts, false);
+    tip = findTaskFromList(nonRunningReduces, tts, numUniqueHosts, false);
+    findReduceTaskFromList(nonRunningReduces, tts, numUniqueHosts, false);
     if (tip != null) {
       scheduleReduce(tip);
       return tip.getIdWithinJob();
