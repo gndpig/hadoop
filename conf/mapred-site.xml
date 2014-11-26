@@ -37,6 +37,6 @@
   
   <property>
     <name>mapred.reduce.slowstart.completed.maps</name>
-    <value>0.2</value>
+    <value>0.05</value>
   </property>
 </configuration>
