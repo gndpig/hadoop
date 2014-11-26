@@ -3799,7 +3799,8 @@ public class JobInProgress {
 
 			Map<String, Integer> partitionResult = new TreeMap<String, Integer>();
 			Map<String, Integer> partitionData = data.get(part);
-
+			
+			LOG.info("Part = " + part);
 			for (String taskTrackerName : partitionData.keySet()) {
 				int dataVolume = 0;
 				for (String taskTrackerName1 : partitionData.keySet()) {
@@ -3811,6 +3812,7 @@ public class JobInProgress {
 					max = dataVolume;
 				}
 				partitionResult.put(taskTrackerName, dataVolume);
+				LOG.info("taskTrackerName = " + taskTrackerName + ", dataVolume = " + dataVolume);
 			}
 			maxAndPartition.put(part, max);
 			result.put(part, partitionResult);
@@ -3834,8 +3836,10 @@ public class JobInProgress {
 				}
 				
 			});
+			LOG.info("Part = " + part);
       for (Entry<String, Integer> s : entries) {
       	partitionResult.put(s.getKey(), s.getValue());
+      	LOG.info("taskTrackerName = " + s.getKey() + ", dataVolume = " + s.getValue());
       }
       result.put(part, partitionResult);
 		}
