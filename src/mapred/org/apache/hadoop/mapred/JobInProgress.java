@@ -2299,30 +2299,33 @@ public class JobInProgress {
       Collection<TaskInProgress> tips, TaskTrackerStatus ttStatus,
       int numUniqueHosts,
       boolean removeFailedTip) {
-  	
-  	Integer assignPart = planAssignList().get(ttStatus.getTrackerName());
-  	
-  	if (assignPart != null) {
-    	for (TaskInProgress tip : tips) {
-    		if (tip.getPartition() == assignPart) {
-    			LOG.info("assignPart = " + assignPart + ", tip = " + tip);
-          if (tip.isRunnable() && !tip.isRunning()) {
-            // check if the tip has failed on this host
-            if (!tip.hasFailedOnMachine(ttStatus.getHost()) || 
-                 tip.getNumberOfFailedMachines() >= numUniqueHosts) {
-              // check if the tip has failed on all the nodes
-              return tip;
-            } else if (removeFailedTip) { 
-              // the case where we want to remove a failed tip from the host cache
-              // point#3 in the TIP removal logic above
+  	Map<String, Integer> planAssignList = planAssignList();
+  	if (planAssignList != null) {
+    	Integer assignPart = planAssignList.get(ttStatus.getTrackerName());
+    	
+    	if (assignPart != null) {
+      	for (TaskInProgress tip : tips) {
+      		if (tip.getPartition() == assignPart) {
+      			LOG.info("assignPart = " + assignPart + ", tip = " + tip);
+            if (tip.isRunnable() && !tip.isRunning()) {
+              // check if the tip has failed on this host
+              if (!tip.hasFailedOnMachine(ttStatus.getHost()) || 
+                   tip.getNumberOfFailedMachines() >= numUniqueHosts) {
+                // check if the tip has failed on all the nodes
+                return tip;
+              } else if (removeFailedTip) { 
+                // the case where we want to remove a failed tip from the host cache
+                // point#3 in the TIP removal logic above
+              }
+            } else {
             }
-          } else {
-          }
-    			break;
-    			
-    		}
-    	}
-  	}  	
+      			break;
+      			
+      		}
+      	}
+    	}  	  		
+  	}
+  	
     return null;
   }
   
