@@ -2299,17 +2299,15 @@ public class JobInProgress {
       Collection<TaskInProgress> tips, TaskTrackerStatus ttStatus,
       int numUniqueHosts,
       boolean removeFailedTip) {
-  	LOG.info("findReduceTaskFromList");
   	Map<String, Integer> planAssignList = planAssignList();
   	if (planAssignList != null) {
-  		LOG.info("planAssignList = not null");
     	Integer assignPart = planAssignList.get(ttStatus.getTrackerName());
     	
+    	LOG.info("findReduceTaskFromList taskTrackerName = " + ttStatus.getTrackerName() + "assignPart = " + assignPart);
+    	
     	if (assignPart != null) {
-    		LOG.info("assignPart = not null");
       	for (TaskInProgress tip : tips) {
       		if (tip.getPartition() == assignPart) {
-      			LOG.info("assignPart = " + assignPart + ", tip = " + tip);
             if (tip.isRunnable() && !tip.isRunning()) {
               // check if the tip has failed on this host
               if (!tip.hasFailedOnMachine(ttStatus.getHost()) || 
@@ -3773,27 +3771,7 @@ public class JobInProgress {
     return level;
   }
   
-  private void combinationDataVolumes() {
-  	Map<String, int[]> oldDataVolumes = this.dataVolumes;
-  	Map<String, int[]> combinationList = new TreeMap<String, int[]>();
-  	int numReduceTasks = conf.getNumReduceTasks();
-  	int[] newDataVolume;
-  	for (String key1 : oldDataVolumes.keySet()) {
-  		newDataVolume = new int[numReduceTasks];
-  		for (String key2 : oldDataVolumes.keySet()) {
-  			if (key1 != key2) {
-    			int[] oldDataVolume = oldDataVolumes.get(key2);
-    			for (int i = 0; i < numReduceTasks; i++) {
-    				newDataVolume[i] += oldDataVolume[i];
-    			}
-  			}
-  		}
-  		combinationList.put(key1, newDataVolume);
-  	}
-  }
-  
 	public Map<Integer, Map<String, Integer>> calculateData() {
-		LOG.info("calculateData");
 		Map<Integer, Map<String, Integer>> result = new TreeMap<Integer, Map<String,Integer>>();
 //		Map<Integer, Integer> maxAndPartition = new HashMap<Integer, Integer>();
 		
@@ -3803,7 +3781,6 @@ public class JobInProgress {
 			Map<String, Integer> partitionResult = new TreeMap<String, Integer>();
 			Map<String, Integer> partitionData = data.get(part);
 			
-			LOG.info("Part = " + part);
 			for (String taskTrackerName : partitionData.keySet()) {
 				int dataVolume = 0;
 				for (String taskTrackerName1 : partitionData.keySet()) {
@@ -3815,7 +3792,6 @@ public class JobInProgress {
 					max = dataVolume;
 				}
 				partitionResult.put(taskTrackerName, dataVolume);
-				LOG.info("taskTrackerName = " + taskTrackerName + ", dataVolume = " + dataVolume);
 			}
 			maxAndPartition.put(part, max);
 			result.put(part, partitionResult);
@@ -3824,7 +3800,6 @@ public class JobInProgress {
 	}
 	
 	public Map<Integer, Map<String, Integer>> sortCalculateData() {
-		LOG.info("sortCalculateData");
 		Map<Integer, Map<String, Integer>> calculateData = calculateData();
 		Map<Integer, Map<String, Integer>> result = new TreeMap<Integer, Map<String,Integer>>();
 		
@@ -3839,10 +3814,8 @@ public class JobInProgress {
 				}
 				
 			});
-			LOG.info("Part = " + part);
       for (Entry<String, Integer> s : entries) {
       	partitionResult.put(s.getKey(), s.getValue());
-      	LOG.info("taskTrackerName = " + s.getKey() + ", dataVolume = " + s.getValue());
       }
       result.put(part, partitionResult);
 		}
@@ -3856,11 +3829,7 @@ public class JobInProgress {
 			public int compare(Entry<Integer, Integer> entry1, Entry<Integer, Integer> entry2) {
 				return ((Integer)entry2.getValue()).compareTo((Integer)entry1.getValue());
 			}
-		});
-		
-		for (Entry<Integer, Integer> list : entries) {
-			LOG.info("part = " + list.getKey() + ", max = " + list.getValue());
-		}
+		});		
 		return entries;
 	}
 	
@@ -3878,7 +3847,6 @@ public class JobInProgress {
 				for (String taskTracker : partitionData.keySet()) {
 	    		if (!planAssignList.containsKey(taskTracker)) {
 	    			planAssignList.put(taskTracker, sortMaxAndPartition.getKey());
-	    			LOG.info("taskTracker = " + taskTracker + ", part = " + sortMaxAndPartition.getKey());
 	    			break;
 	    		}
 				}
