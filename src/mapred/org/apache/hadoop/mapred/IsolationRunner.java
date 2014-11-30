@@ -57,7 +57,7 @@ public class IsolationRunner {
         throws IOException {
       LOG.info("Task " + taskid + " reporting done.");
     }
-    
+
     public void fsError(TaskAttemptID taskId, String message,
         JvmContext jvmContext) throws IOException {
       LOG.info("Task " + taskId + " reporting file system error: " + message);

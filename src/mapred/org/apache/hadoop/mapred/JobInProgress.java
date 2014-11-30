@@ -159,7 +159,7 @@ public class JobInProgress {
   
   // A list of cleanup tasks for the reduce task attempts, to be launched
   List<TaskAttemptID> reduceCleanupTasks = new LinkedList<TaskAttemptID>();
-  
+
   // keep failedMaps, nonRunningReduces ordered by failure count to bias
   // scheduling toward failing tasks
   private static final Comparator<TaskInProgress> failComparator =
@@ -351,7 +351,7 @@ public class JobInProgress {
       throw new IOException("Queue \"" + queueName + "\" does not exist");
     }
     this.queueMetrics = queue.getMetrics();
-    
+
     // Check task limits
     checkTaskLimits();
 
@@ -473,7 +473,6 @@ public class JobInProgress {
       this.resourceEstimator = new ResourceEstimator(this);
       this.reduce_input_limit = conf.getLong("mapreduce.reduce.input.limit", 
           DEFAULT_REDUCE_INPUT_LIMIT);
-      
       // register job's tokens for renewal
       DelegationTokenRenewal.registerDelegationTokensForRenewal(
           jobInfo.getJobID(), ts, jobtracker.getConf());
@@ -1080,7 +1079,7 @@ public class JobInProgress {
   /**
    * Assuming {@link JobTracker} is locked on entry.
    */
-	public synchronized void updateTaskStatus(TaskInProgress tip, 
+  public synchronized void updateTaskStatus(TaskInProgress tip, 
                                             TaskStatus status) {
 
     double oldProgress = tip.getProgress();   // save old progress

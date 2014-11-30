@@ -534,7 +534,7 @@ public class LocalJobRunner implements JobSubmissionProtocol {
     public void done(TaskAttemptID taskId, JvmContext jvmContext)
         throws IOException {
     }
-       
+
     public synchronized void fsError(TaskAttemptID taskId, String message,
         JvmContext jvmContext) throws IOException {
       LOG.fatal("FSError: " + message + "from task: " + taskId);

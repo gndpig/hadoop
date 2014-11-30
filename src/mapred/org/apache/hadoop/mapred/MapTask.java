@@ -81,7 +81,7 @@ class MapTask extends Task {
   private final static int APPROX_HEADER_LENGTH = 150;
 
   private static final Log LOG = LogFactory.getLog(MapTask.class.getName());
-     
+
   {   // set phase for this task
     setPhase(TaskStatus.Phase.MAP); 
   }
@@ -101,8 +101,6 @@ class MapTask extends Task {
   public boolean isMapTask() {
     return true;
   }
-  
-
 
   @Override
   public void localizeConfiguration(JobConf conf)
@@ -154,7 +152,7 @@ class MapTask extends Task {
     if (isMapOrReduce()) {
       splitMetaInfo.readFields(in);
     }
-  }  
+  }
 
   /**
    * This class wraps the user's record reader to update the counters and
@@ -597,9 +595,9 @@ class MapTask extends Task {
         Thread.currentThread().interrupt();
         throw new IOException("interrupt exception", ie);
       }
-    }    
-  }  
-    
+    }
+  }
+
   private class NewDirectOutputCollector<K,V>
   extends org.apache.hadoop.mapreduce.RecordWriter<K,V> {
     private final org.apache.hadoop.mapreduce.RecordWriter out;
@@ -1805,5 +1803,5 @@ class MapTask extends Task {
       }
     }
   }
-  
+
 }

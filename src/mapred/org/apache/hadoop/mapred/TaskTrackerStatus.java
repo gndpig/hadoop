@@ -50,14 +50,13 @@ public class TaskTrackerStatus implements Writable {
   int taskFailures;
   int dirFailures;
   List<TaskStatus> taskReports;
-      
+
   volatile long lastSeen;
   private int maxMapTasks;
   private int maxReduceTasks;
   private TaskTrackerHealthStatus healthStatus;
    
   public static final int UNAVAILABLE = -1;
-  
   /**
    * Class representing a collection of resources on this tasktracker.
    */
@@ -693,5 +692,4 @@ public class TaskTrackerStatus implements Writable {
     }
     getHealthStatus().readFields(in);
   }
-  
 }

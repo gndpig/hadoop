@@ -60,7 +60,7 @@ public abstract class TaskStatus implements Writable, Cloneable {
   private Counters counters;
   private boolean includeCounters;
   private SortedRanges.Range nextRecordRange = new SortedRanges.Range();
-   
+
   public TaskStatus() {
     taskid = new TaskAttemptID();
     numSlots = 0;
@@ -380,7 +380,7 @@ public abstract class TaskStatus implements Writable, Cloneable {
       throw new InternalError(cnse.toString());
     }
   }
-      
+
   //////////////////////////////////////////////
   // Writable
   //////////////////////////////////////////////
@@ -401,7 +401,7 @@ public abstract class TaskStatus implements Writable, Cloneable {
     }
     nextRecordRange.write(out);
   }
-  
+
   public void readFields(DataInput in) throws IOException {
     this.taskid.readFields(in);
     this.progress = in.readFloat();

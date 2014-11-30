@@ -1967,10 +1967,8 @@ public class TaskTracker implements MRConstants, TaskUmbilicalProtocol,
                                        taskFailures,
                                        localStorage.numFailures(),
                                        maxMapSlots,
-                                       maxReduceSlots                                       
-                                       );
+                                       maxReduceSlots);
       }
-
     } else {
       LOG.info("Resending 'status' to '" + jobTrackAddr.getHostName() +
                "' with reponseId '" + heartbeatResponseId);
@@ -2026,14 +2024,10 @@ public class TaskTracker implements MRConstants, TaskUmbilicalProtocol,
         healthStatus.setHealthReport("");
       }
     }
-    
-    
-           
     //
     // Xmit the heartbeat
     //
-    HeartbeatResponse heartbeatResponse;
-    	heartbeatResponse = jobClient.heartbeat(status, 
+    HeartbeatResponse heartbeatResponse = jobClient.heartbeat(status, 
                                                               justStarted,
                                                               justInited,
                                                               askForNewTask, 
@@ -3856,7 +3850,6 @@ public class TaskTracker implements MRConstants, TaskUmbilicalProtocol,
     }
     return result;
   }
-      
   /**
    * Get the list of tasks that will be reported back to the 
    * job tracker in the next heartbeat cycle.

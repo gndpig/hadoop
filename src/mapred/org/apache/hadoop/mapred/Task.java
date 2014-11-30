@@ -165,8 +165,7 @@ abstract public class Task implements Writable, Configurable {
   protected TaskUmbilicalProtocol umbilical;
   protected SecretKey tokenSecret;
   protected JvmContext jvmContext;
-  
-  
+
   ////////////////////////////////////////////
   // Constructors
   ////////////////////////////////////////////
@@ -967,7 +966,7 @@ abstract public class Task implements Writable, Configurable {
     int retries = MAX_RETRIES;
     while (true) {
       try {
-      	umbilical.done(getTaskID(), jvmContext);      		
+      	umbilical.done(getTaskID(), jvmContext);
         LOG.info("Task '" + taskId + "' done.");
         return;
       } catch (IOException ie) {
