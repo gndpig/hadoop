@@ -2299,18 +2299,23 @@ public class JobInProgress {
       Collection<TaskInProgress> tips, TaskTrackerStatus ttStatus,
       int numUniqueHosts,
       boolean removeFailedTip) {
+  	LOG.info("findReduceTaskFromList taskTracker = " + ttStatus.getTrackerName());
   	Map<String, Integer> planAssignList = planAssignList();
   	if (planAssignList != null) {
     	Integer assignPart = planAssignList.get(ttStatus.getTrackerName());
-    	
+    	LOG.info("findReduceTaskFromList part = " + assignPart + ", taskTracker = " + ttStatus.getTrackerName());
     	
     	if (assignPart != null) {
       	for (TaskInProgress tip : tips) {
+      		
       		if (tip.getPartition() == assignPart) {
+        		LOG.info("findReduceTaskFromList1 tip = " + tip + ", taskTracker = " + ttStatus.getTrackerName());
             if (tip.isRunnable() && !tip.isRunning()) {
+          		LOG.info("findReduceTaskFromList2 tip = " + tip + ", taskTracker = " + ttStatus.getTrackerName());
               // check if the tip has failed on this host
               if (!tip.hasFailedOnMachine(ttStatus.getHost()) || 
                    tip.getNumberOfFailedMachines() >= numUniqueHosts) {
+            		LOG.info("findReduceTaskFromList3 tip = " + tip + ", taskTracker = " + ttStatus.getTrackerName());
                 // check if the tip has failed on all the nodes
                 return tip;
               } else if (removeFailedTip) { 
