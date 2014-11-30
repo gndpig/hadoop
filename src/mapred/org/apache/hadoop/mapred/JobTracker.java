@@ -3068,22 +3068,7 @@ public class JobTracker implements MRConstants, InterTrackerProtocol,
     removeMarkedTasks(trackerName);
         
     return response;
-  }
-  
-  /**
-   * Test heartbeat program
-   */
-  public synchronized HeartbeatResponse heartbeat(TaskTrackerStatus status, 
-          boolean restarted,
-          boolean initialContact,
-          boolean acceptNewTasks, 
-          short responseId,
-          String name)
-  throws IOException {
-	  LOG.info("Test heartbeat name = " + name);
-	  return heartbeat(status, restarted, initialContact, acceptNewTasks, responseId);
-  }
-  
+  }  
   
   /**
    * Calculates next heartbeat interval using cluster size.

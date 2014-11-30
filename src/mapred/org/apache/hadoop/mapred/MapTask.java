@@ -589,13 +589,9 @@ class MapTask extends Task {
     @Override
     public void collect(K key, V value) throws IOException {
       try {
-        // 古い API を使用した場合
-        // 中間データの Partition の情報を得る
-        int part = partitioner.getPartition(key, value, numPartitions);
-        LOG.info("OldOutputCollector Key: " + key + " value: " + value + " numPartitions: " + numPartitions + " part: " + part);
-        collector.collect(key, value, part);
-        //collector.collect(key, value,
-        //                  partitioner.getPartition(key, value, numPartitions));
+
+        collector.collect(key, value,
+                          partitioner.getPartition(key, value, numPartitions));
       } catch (InterruptedException ie) {
         Thread.currentThread().interrupt();
         throw new IOException("interrupt exception", ie);
@@ -693,13 +689,8 @@ class MapTask extends Task {
 
     @Override
     public void write(K key, V value) throws IOException, InterruptedException {
-      // 新しい API を使用した場合
-      // 中間データの Partition の情報を得る
-      int part = partitioner.getPartition(key, value, partitions);
-      LOG.info("NewOutputCollector key: " + key + " value: " + value + " partitions " + partitions + " part " + part);
-      collector.collect(key, value, part);
-      //collector.collect(key, value,
-      //                  partitioner.getPartition(key, value, partitions));
+      collector.collect(key, value,
+                        partitioner.getPartition(key, value, partitions));
     }
 
     @Override
