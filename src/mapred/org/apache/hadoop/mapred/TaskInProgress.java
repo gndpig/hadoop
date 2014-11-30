@@ -313,12 +313,6 @@ class TaskInProgress {
     return splitInfo != null;
   }
   
-  /*
-   * Return the partition
-   */
-  public int getPartition() {
-  	return partition;
-  }
     
   /**
    * Returns the type of the {@link TaskAttemptID} passed. 

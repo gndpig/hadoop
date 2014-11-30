@@ -31,9 +31,6 @@ import java.io.DataOutput;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.UnsupportedEncodingException;
-import java.lang.management.ManagementFactory;
-import java.lang.management.RuntimeMXBean;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
@@ -157,12 +154,7 @@ class MapTask extends Task {
     if (isMapOrReduce()) {
       splitMetaInfo.readFields(in);
     }
-  }
-  
-  @Override
-  public void setConf(Configuration conf) {
-	  super.setConf(conf);
-  }
+  }  
 
   /**
    * This class wraps the user's record reader to update the counters and
@@ -572,7 +564,7 @@ class MapTask extends Task {
    * the configured partitioner should not be called. It's common for
    * partitioners to compute a result mod numReduces, which causes a div0 error
    */
-  private class OldOutputCollector<K,V> implements OutputCollector<K,V> {
+  private static class OldOutputCollector<K,V> implements OutputCollector<K,V> {
     private final Partitioner<K,V> partitioner;
     private final MapOutputCollector<K,V> collector;
     private final int numPartitions;

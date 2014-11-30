@@ -21,7 +21,6 @@ import java.io.IOException;
 import java.security.PrivilegedExceptionAction;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.EnumMap;
 import java.util.HashMap;
@@ -37,7 +36,6 @@ import java.util.SortedSet;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.Vector;
-import java.util.Map.Entry;
 import java.net.UnknownHostException;
 
 import org.apache.commons.logging.Log;
@@ -2229,14 +2227,6 @@ public class JobInProgress {
     }
     return null;
   }
-  
-  /**
-   * Find a non-running task in the passed list of TIPs
-   * @param tips a collection of TIPs
-   * @param ttStatus the status of tracker that has requested a task to run
-   * @param numUniqueHosts number of unique hosts that run trask trackers
-   * @param removeFailedTip whether to remove the failed tips
-   */
   
   /**
    * Find a speculative task

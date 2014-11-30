@@ -33,7 +33,7 @@ import java.util.*;
  *
  * This is NOT a public interface!
  **************************************************/
-public class TaskTrackerStatus implements Writable, Cloneable {
+public class TaskTrackerStatus implements Writable {
   public static final Log LOG = LogFactory.getLog(TaskTrackerStatus.class);
   
   static {                                        // register a ctor

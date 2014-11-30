@@ -380,16 +380,6 @@ public abstract class TaskStatus implements Writable, Cloneable {
       throw new InternalError(cnse.toString());
     }
   }
-  
-  /*
-  public void setTask(Task task) {
-	  this.task = task;
-  }
-  
-  public Task getTask() {
-	  return this.task;
-  }
-  */
       
   //////////////////////////////////////////////
   // Writable
