@@ -2306,12 +2306,15 @@ public class JobInProgress {
     	
     	if (assignPart != null) {
       	for (TaskInProgress tip : tips) {
+        	LOG.info("findReduceTaskFromList1 tip = " + tip + ", taskTracker = " + ttStatus.getTrackerName());
       		if (tip.getPartition() == assignPart) {
+          	LOG.info("findReduceTaskFromList2 tip = " + tip + ", taskTracker = " + ttStatus.getTrackerName());
             if (tip.isRunnable() && !tip.isRunning()) {
+            	LOG.info("findReduceTaskFromList3 tip = " + tip + ", taskTracker = " + ttStatus.getTrackerName());
               // check if the tip has failed on this host
               if (!tip.hasFailedOnMachine(ttStatus.getHost()) || 
                    tip.getNumberOfFailedMachines() >= numUniqueHosts) {
-              	LOG.info("findReduceTaskFromList tip = " + tip + ", taskTracker = " + ttStatus.getTrackerName());
+              	LOG.info("findReduceTaskFromList4 tip = " + tip + ", taskTracker = " + ttStatus.getTrackerName());
                 // check if the tip has failed on all the nodes
                 return tip;
               } else if (removeFailedTip) { 
