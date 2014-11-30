@@ -3647,6 +3647,7 @@ public class TaskTracker implements MRConstants, TaskUmbilicalProtocol,
     }
   }
 
+
   /** 
    * A reduce-task failed to shuffle the map-outputs. Kill the task.
    */  

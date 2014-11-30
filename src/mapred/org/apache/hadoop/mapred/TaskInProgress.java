@@ -312,7 +312,6 @@ class TaskInProgress {
   public boolean isMapTask() {
     return splitInfo != null;
   }
-  
     
   /**
    * Returns the type of the {@link TaskAttemptID} passed. 

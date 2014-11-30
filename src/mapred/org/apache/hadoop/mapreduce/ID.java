@@ -86,4 +86,5 @@ public abstract class ID implements WritableComparable<ID> {
   public void write(DataOutput out) throws IOException {
     out.writeInt(id);
   }
+
 }

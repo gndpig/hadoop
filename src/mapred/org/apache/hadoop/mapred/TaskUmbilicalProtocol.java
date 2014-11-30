@@ -119,7 +119,6 @@ public interface TaskUmbilicalProtocol extends VersionedProtocol {
    */
   void done(TaskAttemptID taskid, JvmContext jvmContext) throws IOException;
 
-  
   /** 
    * Report that the task is complete, but its commit is pending.
    * 
