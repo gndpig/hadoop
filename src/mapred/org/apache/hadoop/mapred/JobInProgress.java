@@ -162,15 +162,6 @@ public class JobInProgress {
   // A list of cleanup tasks for the reduce task attempts, to be launched
   List<TaskAttemptID> reduceCleanupTasks = new LinkedList<TaskAttemptID>();
   
-  // データ量
-  private Map<String, int[]> dataVolumes;
-  
-  private Map<Integer, Map<String, Integer>> data;
-  
-  // Reduce タスクの割り当て済みタスクとノードの一覧
-  private Map<String, Integer> assignList;
-  private Map<Integer, Integer> maxAndPartition = new HashMap<Integer, Integer>();
-
   // keep failedMaps, nonRunningReduces ordered by failure count to bias
   // scheduling toward failing tasks
   private static final Comparator<TaskInProgress> failComparator =
@@ -363,9 +354,6 @@ public class JobInProgress {
     }
     this.queueMetrics = queue.getMetrics();
     
-    this.dataVolumes = new TreeMap<String, int[]>();
-    this.data = new TreeMap<Integer, Map<String,Integer>>();
-
     // Check task limits
     checkTaskLimits();
 
@@ -488,9 +476,6 @@ public class JobInProgress {
       this.reduce_input_limit = conf.getLong("mapreduce.reduce.input.limit", 
           DEFAULT_REDUCE_INPUT_LIMIT);
       
-      this.dataVolumes = new TreeMap<String, int[]>();
-      this.data = new TreeMap<Integer, Map<String,Integer>>();
-
       // register job's tokens for renewal
       DelegationTokenRenewal.registerDelegationTokensForRenewal(
           jobInfo.getJobID(), ts, jobtracker.getConf());
@@ -1168,49 +1153,6 @@ public class JobInProgress {
         taskEvent.setTaskRunTime((int)(status.getFinishTime() 
                                        - status.getStartTime()));
         tip.setSuccessEventNumber(taskCompletionEventTracker);
-        // taskTracker 毎の dataVolumes の更新
-        if (status.getIsMap()) {
-        	String taskTrackerName = status.getTaskTracker();
-        	int[] dataVolume = status.getDataVolume();
-/*
-        	int[] oldDataVolume = this.dataVolumes.get(taskTrackerName);
-        	if (oldDataVolume != null) {
-        		for (int i = 0; i < dataVolume.length; i++) {
-        			oldDataVolume[i] += dataVolume[i];
-        		}
-        		this.dataVolumes.put(taskTrackerName, oldDataVolume);
-        	} else {
-          	this.dataVolumes.put(taskTrackerName, dataVolume);        		
-        	}
-        	*/
-        	//LOG.info("JobInProgress taskTracker = " + taskTrackerName);
-        	//MapTask.showArray(this.dataVolumes.get(taskTrackerName));
-        	
-        	// 改訂版
-        	for (int i = 0; i < conf.getNumReduceTasks(); i++) {
-        		Map<String, Integer> partitionData = data.get(i);
-        		if (partitionData != null) {
-        			Integer taskTrackerPartitionData = partitionData.get(taskTrackerName);
-        			if (taskTrackerPartitionData != null) {
-          			partitionData.put(taskTrackerName, taskTrackerPartitionData + dataVolume[i]);        				
-        			} else {
-          			partitionData.put(taskTrackerName, dataVolume[i]);        				        				
-        			}
-        		} else {
-        			partitionData = new TreeMap<String, Integer>();
-        			partitionData.put(taskTrackerName, dataVolume[i]);
-        		}
-        		data.put(i, partitionData);
-        	}
-        	// デバッグ
-        	LOG.info("JobInProgress taskTracker = " + taskTrackerName);
-        	for (Integer part : data.keySet()) {
-        		Map<String, Integer> partitionData = data.get(part);
-        		for (String trackerName : partitionData.keySet()) {
-        			LOG.info("TaskTracker = " + trackerName + ", data (" + part + ") = " + partitionData.get(trackerName));
-        		}
-        	}
-        }
       } else if (state == TaskStatus.State.COMMIT_PENDING) {
         // If it is the first attempt reporting COMMIT_PENDING
         // ask the task to commit.
@@ -2295,71 +2237,6 @@ public class JobInProgress {
    * @param numUniqueHosts number of unique hosts that run trask trackers
    * @param removeFailedTip whether to remove the failed tips
    */
-  private synchronized TaskInProgress findReduceTaskFromList(
-      Collection<TaskInProgress> tips, TaskTrackerStatus ttStatus,
-      int numUniqueHosts,
-      boolean removeFailedTip) {
-  	LOG.info("findReduceTaskFromList taskTracker = " + ttStatus.getTrackerName());
-  	Map<String, Integer> planAssignList = planAssignList();
-  	if (planAssignList != null) {
-    	Integer assignPart = planAssignList.get(ttStatus.getTrackerName());
-    	LOG.info("findReduceTaskFromList part = " + assignPart + ", taskTracker = " + ttStatus.getTrackerName());
-    	
-    	if (assignPart != null) {
-      	for (TaskInProgress tip : tips) {
-      		
-      		if (tip.getPartition() == assignPart) {
-        		LOG.info("findReduceTaskFromList1 tip = " + tip + ", taskTracker = " + ttStatus.getTrackerName());
-            if (tip.isRunnable() && !tip.isRunning()) {
-          		LOG.info("findReduceTaskFromList2 tip = " + tip + ", taskTracker = " + ttStatus.getTrackerName());
-              // check if the tip has failed on this host
-              if (!tip.hasFailedOnMachine(ttStatus.getHost()) || 
-                   tip.getNumberOfFailedMachines() >= numUniqueHosts) {
-            		LOG.info("findReduceTaskFromList3 tip = " + tip + ", taskTracker = " + ttStatus.getTrackerName());
-                // check if the tip has failed on all the nodes
-                return tip;
-              } else if (removeFailedTip) { 
-                // the case where we want to remove a failed tip from the host cache
-                // point#3 in the TIP removal logic above
-              }
-            } else {
-            }
-      			break;
-      			
-      		}
-      	}
-    	}  	  		
-  	}
-  	
-    return null;
-  }
-  
-	public Map<String, Integer> calculateMaxPartitionData() {
-		Map<Integer, Map<String, Integer>> result = new TreeMap<Integer, Map<String,Integer>>();
-		int maxPart = 0;
-		int max = 0;
-		
-		for (Integer part : data.keySet()) {
-			Map<String, Integer> partitionResult = new TreeMap<String, Integer>();
-			Map<String, Integer> partitionData = data.get(part);
-
-			for (String taskTrackerName : partitionData.keySet()) {
-				int dataVolume = 0;
-				for (String taskTrackerName1 : partitionData.keySet()) {
-					if (taskTrackerName != taskTrackerName1) {
-						dataVolume += partitionData.get(taskTrackerName1);
-					}
-				}
-				if (max < dataVolume) {
-					maxPart = part;
-					max = dataVolume;
-				}
-				partitionResult.put(taskTrackerName, dataVolume);
-			}
-			result.put(part, partitionResult);
-		}
-		return result.get(maxPart);
-	}	
   
   /**
    * Find a speculative task
@@ -2664,8 +2541,7 @@ public class JobInProgress {
 
     // 1. check for a never-executed reduce tip
     // reducers don't have a cache and so pass -1 to explicitly call that out
-   // tip = findTaskFromList(nonRunningReduces, tts, numUniqueHosts, false);
-    tip = findReduceTaskFromList(nonRunningReduces, tts, numUniqueHosts, false);
+    tip = findTaskFromList(nonRunningReduces, tts, numUniqueHosts, false);
     if (tip != null) {
       scheduleReduce(tip);
       return tip.getIdWithinJob();
@@ -3774,91 +3650,4 @@ public class JobInProgress {
     }
     return level;
   }
-  
-	public Map<Integer, Map<String, Integer>> calculateData() {
-		Map<Integer, Map<String, Integer>> result = new TreeMap<Integer, Map<String,Integer>>();
-//		Map<Integer, Integer> maxAndPartition = new HashMap<Integer, Integer>();
-		
-		for (Integer part : data.keySet()) {
-			int max = 0;
-
-			Map<String, Integer> partitionResult = new TreeMap<String, Integer>();
-			Map<String, Integer> partitionData = data.get(part);
-			
-			for (String taskTrackerName : partitionData.keySet()) {
-				int dataVolume = 0;
-				for (String taskTrackerName1 : partitionData.keySet()) {
-					if (taskTrackerName != taskTrackerName1) {
-						dataVolume += partitionData.get(taskTrackerName1);
-					}
-				}
-				if (max < dataVolume) {
-					max = dataVolume;
-				}
-				partitionResult.put(taskTrackerName, dataVolume);
-			}
-			maxAndPartition.put(part, max);
-			result.put(part, partitionResult);
-		}
-		return result;
-	}
-	
-	public Map<Integer, Map<String, Integer>> sortCalculateData() {
-		Map<Integer, Map<String, Integer>> calculateData = calculateData();
-		Map<Integer, Map<String, Integer>> result = new TreeMap<Integer, Map<String,Integer>>();
-		
-		for (Integer part : calculateData.keySet()) {
-			Map<String, Integer> partitionData = calculateData.get(part);
-			Map<String, Integer> partitionResult = new HashMap<String, Integer>();
-			List<Map.Entry<String, Integer>> entries = new ArrayList<Map.Entry<String,Integer>>(partitionData.entrySet());
-			Collections.sort(entries, new Comparator<Map.Entry<String, Integer>>() {
-				@Override
-				public int compare(Entry<String, Integer> entry1, Entry<String, Integer> entry2) {
-					return ((Integer)entry1.getValue()).compareTo((Integer)entry2.getValue());
-				}
-				
-			});
-      for (Entry<String, Integer> s : entries) {
-      	partitionResult.put(s.getKey(), s.getValue());
-      }
-      result.put(part, partitionResult);
-		}
-		return result;		
-	}
-	
-	public List<Map.Entry<Integer, Integer>> sortMaxAndPartitionList() {
-		List<Map.Entry<Integer, Integer>> entries = new ArrayList<Map.Entry<Integer,Integer>>(maxAndPartition.entrySet());
-		Collections.sort(entries, new Comparator<Map.Entry<Integer, Integer>>() {
-			@Override
-			public int compare(Entry<Integer, Integer> entry1, Entry<Integer, Integer> entry2) {
-				return ((Integer)entry2.getValue()).compareTo((Integer)entry1.getValue());
-			}
-		});		
-		return entries;
-	}
-	
-	public Map<String, Integer> planAssignList() {
-		LOG.info("planAssignList");
-		if (assignList == null) {
-			// 割り当てノードとタスクの組み合わせリスト
-			Map<String, Integer> planAssignList = new HashMap<String, Integer>();
-			// ソートした転送データ
-			Map<Integer, Map<String, Integer>> sortCalculateData = sortCalculateData();
-			// データ転送量が多い順でソートしたタスクリスト
-			List<Map.Entry<Integer, Integer>> sortMaxAndPartitionList = sortMaxAndPartitionList();
-			for (Entry<Integer, Integer> sortMaxAndPartition : sortMaxAndPartitionList) {
-				Map<String, Integer> partitionData = sortCalculateData.get(sortMaxAndPartition.getKey());
-				for (String taskTracker : partitionData.keySet()) {
-	    		if (!planAssignList.containsKey(taskTracker)) {
-	    			planAssignList.put(taskTracker, sortMaxAndPartition.getKey());
-	    			break;
-	    		}
-				}
-			}
-			assignList = planAssignList;			
-		} else {
-		}
-		return assignList;
-	}
-  
 }

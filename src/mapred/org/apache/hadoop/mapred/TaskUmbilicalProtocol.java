@@ -119,14 +119,6 @@ public interface TaskUmbilicalProtocol extends VersionedProtocol {
    */
   void done(TaskAttemptID taskid, JvmContext jvmContext) throws IOException;
 
-  /** Report that the task is successfully completed.  Failure is assumed if
-   * the task process exits without calling this.
-   * @param taskid task's id
-   * @param jvmContext context the jvmContext running the task.
-   * @param dataVolume data volume
-   */
-  void done(TaskAttemptID taskid, JvmContext jvmContext, int[] dataVolume) throws IOException;
-  
   
   /** 
    * Report that the task is complete, but its commit is pending.

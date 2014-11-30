@@ -166,9 +166,6 @@ abstract public class Task implements Writable, Configurable {
   protected SecretKey tokenSecret;
   protected JvmContext jvmContext;
   
-  // パーティション毎のデータ量 (MapTask のみ使用)
-  protected int[] dataVolume = {};
-
   
   ////////////////////////////////////////////
   // Constructors
@@ -977,11 +974,7 @@ abstract public class Task implements Writable, Configurable {
     int retries = MAX_RETRIES;
     while (true) {
       try {
-      	if (isMapTask()) {
-          umbilical.done(getTaskID(), jvmContext, dataVolume);
-      	} else {
-          umbilical.done(getTaskID(), jvmContext);      		
-      	}
+      	umbilical.done(getTaskID(), jvmContext);      		
         LOG.info("Task '" + taskId + "' done.");
         return;
       } catch (IOException ie) {

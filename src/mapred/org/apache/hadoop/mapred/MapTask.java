@@ -162,7 +162,6 @@ class MapTask extends Task {
   @Override
   public void setConf(Configuration conf) {
 	  super.setConf(conf);
-	  this.dataVolume = new int[this.conf.getNumReduceTasks()];
   }
 
   /**
@@ -600,49 +599,15 @@ class MapTask extends Task {
     @Override
     public void collect(K key, V value) throws IOException {
       try {
-        // 古い API を使用した場合
-        // 中間データの Partition の情報を得る
-        int part = partitioner.getPartition(key, value, numPartitions);
-        if (part >= 0) {
-          dataVolume[part] += getByte(key.toString() + value.toString());
-          LOG.info("key = " + getByte(key.toString()) + ", value = " + getByte(value.toString()));
-          MapTask.showArray(dataVolume);
-          LOG.info("Partitioner = " + partitioner.getClass());
-        }
-        //MapTask.showArray(dataVolume);
-        collector.collect(key, value, part);
-        //collector.collect(key, value,
-        //                  partitioner.getPartition(key, value, numPartitions));
+        collector.collect(key, value,
+                          partitioner.getPartition(key, value, numPartitions));
       } catch (InterruptedException ie) {
         Thread.currentThread().interrupt();
         throw new IOException("interrupt exception", ie);
       }
-    }
-    
-    private int getByte(String str) {
-    	if (str == null) {
-    		return 0;
-    	}
-    	int ret = 0;
-    	try {
-    		ret = str.getBytes("UTF-8").length;
-    	} catch (UnsupportedEncodingException e) {
-    		ret = 0;
-    	}
-    	return ret;
-    }
+    }    
   }  
-  
-
-  public static void showArray(int[] data) {
-  	RuntimeMXBean bean = ManagementFactory.getRuntimeMXBean();
-  	String vmName = bean.getName();
-  	long pid = Long.valueOf(vmName.split("@")[0]);
-  	for (int i = 0; i < data.length; i++) {
-  		LOG.info("[" + vmName + "](" + pid + ")" + "dataVolume (" + i + ") = " + data[i]);
-  	}
-  }
-  
+    
   private class NewDirectOutputCollector<K,V>
   extends org.apache.hadoop.mapreduce.RecordWriter<K,V> {
     private final org.apache.hadoop.mapreduce.RecordWriter out;

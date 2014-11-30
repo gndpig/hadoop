@@ -60,10 +60,7 @@ public abstract class TaskStatus implements Writable, Cloneable {
   private Counters counters;
   private boolean includeCounters;
   private SortedRanges.Range nextRecordRange = new SortedRanges.Range();
-  
-  // タスクごとのデータ量
-  private int[] dataVolume = {};
-  
+   
   public TaskStatus() {
     taskid = new TaskAttemptID();
     numSlots = 0;
@@ -393,15 +390,7 @@ public abstract class TaskStatus implements Writable, Cloneable {
 	  return this.task;
   }
   */
-  
-  public void setDataVolume(int[] dataVolume) {
-  	this.dataVolume = dataVolume;
-  }
-  
-  public int[] getDataVolume() {
-  	return this.dataVolume;
-  }
-    
+      
   //////////////////////////////////////////////
   // Writable
   //////////////////////////////////////////////
@@ -421,16 +410,8 @@ public abstract class TaskStatus implements Writable, Cloneable {
       counters.write(out);
     }
     nextRecordRange.write(out);
-    writeIntArray(out, dataVolume);
   }
   
-  private void writeIntArray(DataOutput out, int[] s) throws IOException {
-  	out.writeInt(s.length);
-  	for(int i = 0; i < s.length; i++) {
-  		out.writeInt(s[i]);
-  	}
-  }
-
   public void readFields(DataInput in) throws IOException {
     this.taskid.readFields(in);
     this.progress = in.readFloat();
@@ -448,19 +429,7 @@ public abstract class TaskStatus implements Writable, Cloneable {
       counters.readFields(in);
     }
     nextRecordRange.readFields(in);
-    this.dataVolume = readIntArray(in);
   }
-  
-  private int[] readIntArray(DataInput in) throws IOException {
-  	int len = in.readInt();
-  	if (len == -1) return null;
-  	int[] s = new int[len];
-  	for(int i = 0; i < len; i++) {
-  		s[i] = in.readInt();
-  	}
-  	return s;
-  }
-
   
   //////////////////////////////////////////////////////////////////////////////
   // Factory-like methods to create/read/write appropriate TaskStatus objects

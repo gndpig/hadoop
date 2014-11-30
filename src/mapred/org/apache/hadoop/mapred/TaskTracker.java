@@ -1962,9 +1962,8 @@ public class TaskTracker implements MRConstants, TaskUmbilicalProtocol,
       synchronized (this) {
         status = new TaskTrackerStatus(taskTrackerName, localHostname, 
                                        httpPort, 
-                                       //cloneAndResetRunningTaskStatuses(
-                                         //sendCounters),
-                                       cloneAndResetRunningTaskStatusesAndTask(sendCounters),
+                                       cloneAndResetRunningTaskStatuses(
+                                         sendCounters),
                                        taskFailures,
                                        localStorage.numFailures(),
                                        maxMapSlots,
@@ -2028,12 +2027,6 @@ public class TaskTracker implements MRConstants, TaskUmbilicalProtocol,
       }
     }
     
-  	List<TaskStatus> list = status.getTaskReports();
-  	LOG.info("ToskTracker taskStatus dataVolume");
-  	for (TaskStatus taskSatus : list) {
-  		LOG.info("Task = " + taskSatus.getTaskID());
-  		MapTask.showArray(taskSatus.getDataVolume());
-  	}    
     
            
     //
@@ -2046,24 +2039,6 @@ public class TaskTracker implements MRConstants, TaskUmbilicalProtocol,
                                                               askForNewTask, 
                                                               heartbeatResponseId
                                                               );
-
-    /*
-    HeartbeatResponse heartbeatResponse = jobClient.heartbeat(status, 
-                                                              justStarted,
-                                                              justInited,
-                                                              askForNewTask, 
-                                                              heartbeatResponseId,
-                                                              (List<Task>)null);
-                                                              */
-/*
-    HeartbeatResponse heartbeatResponse = jobClient.heartbeat(status, 
-                                                              justStarted,
-													          justInited,
-													          askForNewTask, 
-													          heartbeatResponseId,
-													          "Test");
-													          */
-      
     //
     // The heartbeat got through successfully!
     //
@@ -3007,7 +2982,6 @@ public class TaskTracker implements MRConstants, TaskUmbilicalProtocol,
         LOG.info("reportDone");
         if (this.getTask().isMapTask()) {
         	LOG.info(this.taskStatus.getPhase());
-        	MapTask.showArray(this.getTask().dataVolume);
         }
       }
       this.taskStatus.setProgress(1.0f);
@@ -3682,33 +3656,6 @@ public class TaskTracker implements MRConstants, TaskUmbilicalProtocol,
       LOG.warn("Unknown child task done: "+taskid+". Ignored.");
     }
   }
-  
-  /**
-   * The task (Map task) is done.
-   */
-  public synchronized void done(TaskAttemptID taskid, JvmContext jvmContext, int[] dataVolume)
-  throws IOException {
-    authorizeJVM(taskid.getJobID());
-    TaskInProgress tip = tasks.get(taskid);
-//    TaskInProgress runningtip = runningTasks.get(taskid);
-//    LOG.info("tip == runnningtip = " + (tip == runningtip));
-//    if (runningtip != null) {
-//	    Task task = runningtip.getTask();
-//	    task.dataVolume = dataVolume;
-//	    LOG.info("TaskTracker done dataVolume");
-//	    MapTask.showArray(dataVolume);    	
-//    }
-    if (tip != null) {
-      validateJVM(tip, jvmContext, taskid);
-      commitResponses.remove(taskid);
-      Task task = tip.getTask();
-      task.dataVolume = dataVolume;
-      tip.reportDone();
-    } else {
-      LOG.warn("Unknown child task done: "+taskid+". Ignored.");
-    }  	
-  }
-
 
   /** 
    * A reduce-task failed to shuffle the map-outputs. Kill the task.
@@ -3913,31 +3860,7 @@ public class TaskTracker implements MRConstants, TaskUmbilicalProtocol,
     }
     return result;
   }
-  
-  private synchronized List<TaskStatus> cloneAndResetRunningTaskStatusesAndTask(
-		  boolean sendCounters) {
-	  List<TaskStatus> result = new ArrayList<TaskStatus>(runningTasks.size());
-	  for(TaskInProgress tip: runningTasks.values()) {
-		  TaskStatus status = tip.getStatus();
-		  status.setIncludeCounters(sendCounters);
-		  // send counters for finished or failed tasks and commit pending tasks
-		  if (status.getRunState() != TaskStatus.State.RUNNING) {
-			  status.setIncludeCounters(true);
-		  }
-		  TaskStatus newStatus = (TaskStatus)status.clone();
-		  if (status.getIsMap()) {
-			  if (status.getRunState() == TaskStatus.State.SUCCEEDED) {
-				  newStatus.setDataVolume(tip.getTask().dataVolume);
-			  } 		  	
-		  }
-			result.add(newStatus);    	  
-
-		  status.clearStatus();
-	  }		  
-
-	  return result;
-  }
-    
+      
   /**
    * Get the list of tasks that will be reported back to the 
    * job tracker in the next heartbeat cycle.
