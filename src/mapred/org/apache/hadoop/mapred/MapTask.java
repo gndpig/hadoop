@@ -605,11 +605,7 @@ class MapTask extends Task {
         int part = partitioner.getPartition(key, value, numPartitions);
         if (part >= 0) {
           dataVolume[part] += getByte(key.toString() + value.toString());
-          LOG.info("key = " + getByte(key.toString()) + ", value = " + getByte(value.toString()));
-          MapTask.showArray(dataVolume);
-          LOG.info("Partitioner = " + partitioner.getClass());
         }
-        //MapTask.showArray(dataVolume);
         collector.collect(key, value, part);
         //collector.collect(key, value,
         //                  partitioner.getPartition(key, value, numPartitions));
@@ -736,7 +732,6 @@ class MapTask extends Task {
       // 新しい API を使用した場合
       // 中間データの Partition の情報を得る
       int part = partitioner.getPartition(key, value, partitions);
-      LOG.info("NewOutputCollector key: " + key + " value: " + value + " partitions " + partitions + " part " + part);
       collector.collect(key, value, part);
       //collector.collect(key, value,
       //                  partitioner.getPartition(key, value, partitions));

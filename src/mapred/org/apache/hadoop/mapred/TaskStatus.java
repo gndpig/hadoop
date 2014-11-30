@@ -384,16 +384,6 @@ public abstract class TaskStatus implements Writable, Cloneable {
     }
   }
   
-  /*
-  public void setTask(Task task) {
-	  this.task = task;
-  }
-  
-  public Task getTask() {
-	  return this.task;
-  }
-  */
-  
   public void setDataVolume(int[] dataVolume) {
   	this.dataVolume = dataVolume;
   }

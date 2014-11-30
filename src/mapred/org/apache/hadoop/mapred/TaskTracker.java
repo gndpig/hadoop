@@ -2028,14 +2028,6 @@ public class TaskTracker implements MRConstants, TaskUmbilicalProtocol,
       }
     }
     
-  	List<TaskStatus> list = status.getTaskReports();
-  	LOG.info("ToskTracker taskStatus dataVolume");
-  	for (TaskStatus taskSatus : list) {
-  		LOG.info("Task = " + taskSatus.getTaskID());
-  		MapTask.showArray(taskSatus.getDataVolume());
-  	}    
-    
-           
     //
     // Xmit the heartbeat
     //
@@ -2046,24 +2038,6 @@ public class TaskTracker implements MRConstants, TaskUmbilicalProtocol,
                                                               askForNewTask, 
                                                               heartbeatResponseId
                                                               );
-
-    /*
-    HeartbeatResponse heartbeatResponse = jobClient.heartbeat(status, 
-                                                              justStarted,
-                                                              justInited,
-                                                              askForNewTask, 
-                                                              heartbeatResponseId,
-                                                              (List<Task>)null);
-                                                              */
-/*
-    HeartbeatResponse heartbeatResponse = jobClient.heartbeat(status, 
-                                                              justStarted,
-													          justInited,
-													          askForNewTask, 
-													          heartbeatResponseId,
-													          "Test");
-													          */
-      
     //
     // The heartbeat got through successfully!
     //
@@ -3004,11 +2978,6 @@ public class TaskTracker implements MRConstants, TaskUmbilicalProtocol,
         }
       } else {
         this.taskStatus.setRunState(TaskStatus.State.SUCCEEDED);
-        LOG.info("reportDone");
-        if (this.getTask().isMapTask()) {
-        	LOG.info(this.taskStatus.getPhase());
-        	MapTask.showArray(this.getTask().dataVolume);
-        }
       }
       this.taskStatus.setProgress(1.0f);
       this.taskStatus.setFinishTime(System.currentTimeMillis());
@@ -3690,14 +3659,6 @@ public class TaskTracker implements MRConstants, TaskUmbilicalProtocol,
   throws IOException {
     authorizeJVM(taskid.getJobID());
     TaskInProgress tip = tasks.get(taskid);
-//    TaskInProgress runningtip = runningTasks.get(taskid);
-//    LOG.info("tip == runnningtip = " + (tip == runningtip));
-//    if (runningtip != null) {
-//	    Task task = runningtip.getTask();
-//	    task.dataVolume = dataVolume;
-//	    LOG.info("TaskTracker done dataVolume");
-//	    MapTask.showArray(dataVolume);    	
-//    }
     if (tip != null) {
       validateJVM(tip, jvmContext, taskid);
       commitResponses.remove(taskid);

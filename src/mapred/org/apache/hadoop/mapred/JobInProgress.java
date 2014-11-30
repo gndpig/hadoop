@@ -163,8 +163,6 @@ public class JobInProgress {
   List<TaskAttemptID> reduceCleanupTasks = new LinkedList<TaskAttemptID>();
   
   // データ量
-  private Map<String, int[]> dataVolumes;
-  
   private Map<Integer, Map<String, Integer>> data;
   
   // Reduce タスクの割り当て済みタスクとノードの一覧
@@ -363,7 +361,6 @@ public class JobInProgress {
     }
     this.queueMetrics = queue.getMetrics();
     
-    this.dataVolumes = new TreeMap<String, int[]>();
     this.data = new TreeMap<Integer, Map<String,Integer>>();
 
     // Check task limits
@@ -488,7 +485,6 @@ public class JobInProgress {
       this.reduce_input_limit = conf.getLong("mapreduce.reduce.input.limit", 
           DEFAULT_REDUCE_INPUT_LIMIT);
       
-      this.dataVolumes = new TreeMap<String, int[]>();
       this.data = new TreeMap<Integer, Map<String,Integer>>();
 
       // register job's tokens for renewal
@@ -1172,20 +1168,6 @@ public class JobInProgress {
         if (status.getIsMap()) {
         	String taskTrackerName = status.getTaskTracker();
         	int[] dataVolume = status.getDataVolume();
-/*
-        	int[] oldDataVolume = this.dataVolumes.get(taskTrackerName);
-        	if (oldDataVolume != null) {
-        		for (int i = 0; i < dataVolume.length; i++) {
-        			oldDataVolume[i] += dataVolume[i];
-        		}
-        		this.dataVolumes.put(taskTrackerName, oldDataVolume);
-        	} else {
-          	this.dataVolumes.put(taskTrackerName, dataVolume);        		
-        	}
-        	*/
-        	//LOG.info("JobInProgress taskTracker = " + taskTrackerName);
-        	//MapTask.showArray(this.dataVolumes.get(taskTrackerName));
-        	
         	// 改訂版
         	for (int i = 0; i < conf.getNumReduceTasks(); i++) {
         		Map<String, Integer> partitionData = data.get(i);
@@ -1201,14 +1183,6 @@ public class JobInProgress {
         			partitionData.put(taskTrackerName, dataVolume[i]);
         		}
         		data.put(i, partitionData);
-        	}
-        	// デバッグ
-        	LOG.info("JobInProgress taskTracker = " + taskTrackerName);
-        	for (Integer part : data.keySet()) {
-        		Map<String, Integer> partitionData = data.get(part);
-        		for (String trackerName : partitionData.keySet()) {
-        			LOG.info("TaskTracker = " + trackerName + ", data (" + part + ") = " + partitionData.get(trackerName));
-        		}
         	}
         }
       } else if (state == TaskStatus.State.COMMIT_PENDING) {
@@ -2299,23 +2273,16 @@ public class JobInProgress {
       Collection<TaskInProgress> tips, TaskTrackerStatus ttStatus,
       int numUniqueHosts,
       boolean removeFailedTip) {
-  	LOG.info("findReduceTaskFromList taskTracker = " + ttStatus.getTrackerName());
   	Map<String, Integer> planAssignList = planAssignList();
   	if (planAssignList != null) {
-    	Integer assignPart = planAssignList.get(ttStatus.getTrackerName());
-    	LOG.info("findReduceTaskFromList part = " + assignPart + ", taskTracker = " + ttStatus.getTrackerName());
-    	
+    	Integer assignPart = planAssignList.get(ttStatus.getTrackerName());    	
     	if (assignPart != null) {
       	for (TaskInProgress tip : tips) {
-      		
       		if (tip.getPartition() == assignPart) {
-        		LOG.info("findReduceTaskFromList1 tip = " + tip + ", taskTracker = " + ttStatus.getTrackerName());
             if (tip.isRunnable() && !tip.isRunning()) {
-          		LOG.info("findReduceTaskFromList2 tip = " + tip + ", taskTracker = " + ttStatus.getTrackerName());
               // check if the tip has failed on this host
               if (!tip.hasFailedOnMachine(ttStatus.getHost()) || 
                    tip.getNumberOfFailedMachines() >= numUniqueHosts) {
-            		LOG.info("findReduceTaskFromList3 tip = " + tip + ", taskTracker = " + ttStatus.getTrackerName());
                 // check if the tip has failed on all the nodes
                 return tip;
               } else if (removeFailedTip) { 

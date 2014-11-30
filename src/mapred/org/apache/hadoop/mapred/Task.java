@@ -431,9 +431,6 @@ abstract public class Task implements Writable, Configurable {
     out.writeBoolean(writeSkipRecs);
     out.writeBoolean(taskCleanup); 
     Text.writeString(out, user);
-//    for (int i = 0; i < dataVolume.length; i++) {
-//      out.writeInt(dataVolume[i]);    	
-//    }
   }
   
   public void readFields(DataInput in) throws IOException {
@@ -458,10 +455,6 @@ abstract public class Task implements Writable, Configurable {
       setPhase(TaskStatus.Phase.CLEANUP);
     }
     user = Text.readString(in);
-//    int numReduceTasks = in.readInt();
-//    for (int i = 0; i < numReduceTasks; i++) {
-//      dataVolume[i] = in.readInt();    	
-//    }
   }
 
   @Override
