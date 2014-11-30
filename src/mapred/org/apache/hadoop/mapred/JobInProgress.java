@@ -2303,7 +2303,6 @@ public class JobInProgress {
   	if (planAssignList != null) {
     	Integer assignPart = planAssignList.get(ttStatus.getTrackerName());
     	
-    	LOG.info("findReduceTaskFromList taskTrackerName = " + ttStatus.getTrackerName() + "assignPart = " + assignPart);
     	
     	if (assignPart != null) {
       	for (TaskInProgress tip : tips) {
@@ -2312,6 +2311,7 @@ public class JobInProgress {
               // check if the tip has failed on this host
               if (!tip.hasFailedOnMachine(ttStatus.getHost()) || 
                    tip.getNumberOfFailedMachines() >= numUniqueHosts) {
+              	LOG.info("findReduceTaskFromList tip = " + tip + ", taskTracker = " + ttStatus.getTrackerName());
                 // check if the tip has failed on all the nodes
                 return tip;
               } else if (removeFailedTip) { 
