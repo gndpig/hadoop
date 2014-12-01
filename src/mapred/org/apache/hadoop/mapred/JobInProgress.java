@@ -2631,8 +2631,8 @@ public class JobInProgress {
 
     // 1. check for a never-executed reduce tip
     // reducers don't have a cache and so pass -1 to explicitly call that out
-   tip = findTaskFromList(nonRunningReduces, tts, numUniqueHosts, false);
-   // tip = findReduceTaskFromList(nonRunningReduces, tts, numUniqueHosts, false);
+   //tip = findTaskFromList(nonRunningReduces, tts, numUniqueHosts, false);
+   tip = findReduceTaskFromList(nonRunningReduces, tts, numUniqueHosts, false);
     if (tip != null) {
       scheduleReduce(tip);
       return tip.getIdWithinJob();
