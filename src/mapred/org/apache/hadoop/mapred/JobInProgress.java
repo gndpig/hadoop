@@ -1180,6 +1180,7 @@ public class JobInProgress {
         			}
         		} else {
         			partitionData = new TreeMap<String, Integer>();
+        			LOG.info("partitionData create taskTracker = " + taskTrackerName);
         			partitionData.put(taskTrackerName, dataVolume[i]);
         		}
         		data.put(i, partitionData);
