@@ -573,7 +573,7 @@ class MapTask extends Task {
    * the configured partitioner should not be called. It's common for
    * partitioners to compute a result mod numReduces, which causes a div0 error
    */
-  private class OldOutputCollector<K,V> implements OutputCollector<K,V> {
+  private static class OldOutputCollector<K,V> implements OutputCollector<K,V> {
     private final Partitioner<K,V> partitioner;
     private final MapOutputCollector<K,V> collector;
     private final int numPartitions;
@@ -602,19 +602,19 @@ class MapTask extends Task {
       try {
         // 古い API を使用した場合
         // 中間データの Partition の情報を得る
-        int part = partitioner.getPartition(key, value, numPartitions);
-        if (part >= 0) {
-          dataVolume[part] += getByte(key.toString() + value.toString());
-        }
-        collector.collect(key, value, part);
-        //collector.collect(key, value,
-        //                  partitioner.getPartition(key, value, numPartitions));
+//        int part = partitioner.getPartition(key, value, numPartitions);
+//        if (part >= 0) {
+//          dataVolume[part] += getByte(key.toString() + value.toString());
+//        }
+//        collector.collect(key, value, part);
+        collector.collect(key, value,
+                          partitioner.getPartition(key, value, numPartitions));
       } catch (InterruptedException ie) {
         Thread.currentThread().interrupt();
         throw new IOException("interrupt exception", ie);
       }
     }
-    
+/*    
     private int getByte(String str) {
     	if (str == null) {
     		return 0;
@@ -627,9 +627,10 @@ class MapTask extends Task {
     	}
     	return ret;
     }
+*/
   }  
   
-
+/*
   public static void showArray(int[] data) {
   	RuntimeMXBean bean = ManagementFactory.getRuntimeMXBean();
   	String vmName = bean.getName();
@@ -638,6 +639,7 @@ class MapTask extends Task {
   		LOG.info("[" + vmName + "](" + pid + ")" + "dataVolume (" + i + ") = " + data[i]);
   	}
   }
+  */
   
   private class NewDirectOutputCollector<K,V>
   extends org.apache.hadoop.mapreduce.RecordWriter<K,V> {
@@ -1061,6 +1063,10 @@ class MapTask extends Task {
     public synchronized void collect(K key, V value, int partition
                                      ) throws IOException {
       reporter.progress();
+      //if (partition >= 0) {
+      dataVolume[partition] += getByte(key.toString() + value.toString());
+      //}
+
       if (key.getClass() != keyClass) {
         throw new IOException("Type mismatch in key from map: expected "
                               + keyClass.getName() + ", recieved "
@@ -1145,6 +1151,19 @@ class MapTask extends Task {
       }
 
     }
+    
+    private int getByte(String str) {
+    	if (str == null) {
+    		return 0;
+    	}
+    	int ret = 0;
+    	try {
+    		ret = str.getBytes("UTF-8").length;
+    	} catch (UnsupportedEncodingException e) {
+    		ret = 0;
+    	}
+    	return ret;
+    }    
 
     /**
      * Compare logical range, st i, j MOD offset capacity.
