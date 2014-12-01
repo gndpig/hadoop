@@ -2631,8 +2631,8 @@ public class JobInProgress {
 
     // 1. check for a never-executed reduce tip
     // reducers don't have a cache and so pass -1 to explicitly call that out
-   // tip = findTaskFromList(nonRunningReduces, tts, numUniqueHosts, false);
-    tip = findReduceTaskFromList(nonRunningReduces, tts, numUniqueHosts, false);
+   tip = findTaskFromList(nonRunningReduces, tts, numUniqueHosts, false);
+   // tip = findReduceTaskFromList(nonRunningReduces, tts, numUniqueHosts, false);
     if (tip != null) {
       scheduleReduce(tip);
       return tip.getIdWithinJob();
@@ -3745,8 +3745,9 @@ public class JobInProgress {
 	public Map<Integer, Map<String, Integer>> calculateData() {
 		Map<Integer, Map<String, Integer>> result = new TreeMap<Integer, Map<String,Integer>>();
 //		Map<Integer, Integer> maxAndPartition = new HashMap<Integer, Integer>();
-		
+		LOG.info("calculateData");
 		for (Integer part : data.keySet()) {
+			LOG.info(part);
 			int max = 0;
 
 			Map<String, Integer> partitionResult = new TreeMap<String, Integer>();
@@ -3763,8 +3764,10 @@ public class JobInProgress {
 					max = dataVolume;
 				}
 				partitionResult.put(taskTrackerName, dataVolume);
+				LOG.info("taskTracker = " + taskTrackerName + ", dataVolume = " + dataVolume);
 			}
 			maxAndPartition.put(part, max);
+			LOG.info("partition = " + part + ", max = " + max);
 			result.put(part, partitionResult);
 		}
 		return result;
