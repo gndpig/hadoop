@@ -2300,7 +2300,8 @@ public class JobInProgress {
   	
     return null;
   }
-  
+
+  /*
 	public Map<String, Integer> calculateMaxPartitionData() {
 		Map<Integer, Map<String, Integer>> result = new TreeMap<Integer, Map<String,Integer>>();
 		int maxPart = 0;
@@ -2327,6 +2328,7 @@ public class JobInProgress {
 		}
 		return result.get(maxPart);
 	}	
+	*/
   
   /**
    * Find a speculative task
@@ -3754,6 +3756,7 @@ public class JobInProgress {
 			Map<String, Integer> partitionData = data.get(part);
 			
 			for (String taskTrackerName : partitionData.keySet()) {
+				LOG.info("taskTrackerName = " + taskTrackerName);
 				int dataVolume = 0;
 				for (String taskTrackerName1 : partitionData.keySet()) {
 					if (taskTrackerName != taskTrackerName1) {
