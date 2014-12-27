@@ -1,4 +1,13 @@
+#!/bin/bash
+
+# Adjust/Add the property "net.topology.script.file.name"
+# to core-site.xml with the "absolute" path the this
+# file.  ENSURE the file is "executable".
+
+# Supply appropriate rack prefix
+
 HADOOP_CONF=/home/services/hadoop/hadoop/conf
+
 while [ $# -gt 0 ] ; do
   nodeArg=$1
   exec< ${HADOOP_CONF}/topology.data 
@@ -15,4 +24,4 @@ while [ $# -gt 0 ] ; do
   else
     echo -n "$result "
   fi
-done
+done 
