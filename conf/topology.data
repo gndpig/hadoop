@@ -1,0 +1,8 @@
+slave1.hadoop.gndpig.com     /dc1/rack1
+slave2.hadoop.gndpig.com     /dc1/rack1
+slave3.hadoop.gndpig.com     /dc1/rack1
+slave4.hadoop.gndpig.com     /dc1/rack1
+slave5.hadoop.gndpig.com     /dc1/rack2
+slave6.hadoop.gndpig.com     /dc1/rack2
+slave7.hadoop.gndpig.com     /dc1/rack2
+slave8.hadoop.gndpig.com     /dc1/rack2
