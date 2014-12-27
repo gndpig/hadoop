@@ -11,6 +11,6 @@
   </property>
   <property>
     <name>topology.script.file.name</name>
-    <value>rack-awareness.sh</value>
+    <value>/home/services/hadoop/hadoop/conf/rack-awareness.sh</value>
   </property>
 </configuration>
