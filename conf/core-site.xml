@@ -9,4 +9,8 @@
     <name>hadoop.tmp.dir</name>
     <value>/home/services/hadoop</value>
   </property>
+  <property>
+    <name>topology.script.file.name</name>
+    <value>rack-awareness.sh</value>
+  </property>
 </configuration>
