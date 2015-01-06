@@ -3800,7 +3800,7 @@ public class JobInProgress {
   }
   
 	public Map<Integer, Map<String, Integer>> calculateData() {
-		Map<Integer, Map<String, Integer>> result = new TreeMap<Integer, Map<String,Integer>>();
+		Map<Integer, Map<String, Integer>> result = new HashMap<Integer, Map<String,Integer>>();
 //		Map<Integer, Integer> maxAndPartition = new HashMap<Integer, Integer>();
 		LOG.info("calculateData");
 		for (Integer part : data.keySet()) {
@@ -3846,7 +3846,6 @@ public class JobInProgress {
 			});
       for (Entry<String, Integer> s : entries) {
       	partitionResult.put(s.getKey(), s.getValue());
-      	LOG.info(s.getKey() + ", " + s.getValue());
       }
       result.put(part, partitionResult);
 		}
