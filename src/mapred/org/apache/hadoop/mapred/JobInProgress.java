@@ -1183,6 +1183,7 @@ public class JobInProgress {
         			partitionData = new HashMap<String, Integer>();
         			partitionData.put(taskTrackerName, dataVolume[i]);
         		}
+        		data.put(i, partitionData);
         	}
         }
       } else if (state == TaskStatus.State.COMMIT_PENDING) {
