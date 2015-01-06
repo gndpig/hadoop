@@ -28,6 +28,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.IdentityHashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -1182,8 +1183,6 @@ public class JobInProgress {
         			partitionData = new HashMap<String, Integer>();
         			partitionData.put(taskTrackerName, dataVolume[i]);
         		}
-        		data.put(i, partitionData);
-        		LOG.info(taskTrackerName + ", " + dataVolume[i] + "(" + i + ")");
         	}
         }
       } else if (state == TaskStatus.State.COMMIT_PENDING) {
@@ -3835,32 +3834,21 @@ public class JobInProgress {
 		
 		for (Integer part : calculateData.keySet()) {
 			Map<String, Integer> partitionData = calculateData.get(part);
-			Map<String, Integer> partitionResult = new HashMap<String, Integer>();
+			Map<String, Integer> partitionResult = new LinkedHashMap<String, Integer>();
 			List<Map.Entry<String, Integer>> entries = new ArrayList<Map.Entry<String,Integer>>(partitionData.entrySet());
 			Collections.sort(entries, new Comparator<Map.Entry<String, Integer>>() {
 				@Override
 				public int compare(Entry<String, Integer> entry1, Entry<String, Integer> entry2) {
-					return ((Integer)entry2.getValue()).compareTo((Integer)entry1.getValue());
+					return ((Integer)entry1.getValue()).compareTo((Integer)entry2.getValue());
 				}
 				
 			});
-			LOG.info("sortCalculateData");
       for (Entry<String, Integer> s : entries) {
       	partitionResult.put(s.getKey(), s.getValue());
-      	LOG.info(s.getKey() + ", " + s.getValue());
       }
       result.put(part, partitionResult);
 		}
-		
-	LOG.info("trace sortCalculateData");
-	for (Integer i : result.keySet()) {
-		LOG.info(i);
-		Map<String, Integer> map = result.get(i);
-		for (String s: map.keySet()) {
-			LOG.info(s + ", " + map.get(s));
-		}
-	}
-		
+				
 		return result;		
 	}
 	
@@ -3882,14 +3870,14 @@ public class JobInProgress {
 			Map<String, Integer> planAssignList = new HashMap<String, Integer>();
 			// ソートした転送データ
 			Map<Integer, Map<String, Integer>> sortCalculateData = sortCalculateData();
-//			LOG.info("trace sortCalculateData");
-//			for (Integer i : sortCalculateData.keySet()) {
-//				LOG.info(i);
-//				Map<String, Integer> map = sortCalculateData.get(i);
-//				for (String s: map.keySet()) {
-//					LOG.info(s + ", " + map.get(s));
-//				}
-//			}
+			LOG.info("trace sortCalculateData");
+			for (Integer i : sortCalculateData.keySet()) {
+				LOG.info(i);
+				Map<String, Integer> map = sortCalculateData.get(i);
+				for (String s: map.keySet()) {
+					LOG.info(s + ", " + map.get(s));
+				}
+			}
 			// データ転送量が多い順でソートしたタスクリスト
 			List<Map.Entry<Integer, Integer>> sortMaxAndPartitionList = sortMaxAndPartitionList();
 			LOG.info("create Plan Assign List");
