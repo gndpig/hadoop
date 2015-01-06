@@ -1183,6 +1183,7 @@ public class JobInProgress {
         			partitionData.put(taskTrackerName, dataVolume[i]);
         		}
         		data.put(i, partitionData);
+        		LOG.info(taskTrackerName + ", " + dataVolume[i] + "(" + i + ")");
         	}
         }
       } else if (state == TaskStatus.State.COMMIT_PENDING) {
@@ -1703,7 +1704,8 @@ public class JobInProgress {
     
     // Map タスク数が TaskTracker 数より少ない場合
     // パーティション毎のデータ量が分からない状態で Reduce タスクを割り当てるため
-    if ((numMapTasks <= 8) && (finishedMapTasks + failedMapTIPs) != (numMapTasks)) {
+    if ((numMapTasks <= 8) && (finishedMapTasks + failedMapTIPs) <= (numMapTasks)) {
+    	LOG.info((finishedMapTasks + failedMapTIPs) + ", " + numMapTasks);
     	return null;
     }
 
@@ -2281,40 +2283,41 @@ public class JobInProgress {
       boolean removeFailedTip) {
   	Map<String, Integer> planAssignList = planAssignList();
   	if (planAssignList != null) {
-    	Integer assignPart = planAssignList.get(ttStatus.getTrackerName());    	
-	    Iterator<TaskInProgress> iter = tips.iterator();
-	    while (iter.hasNext()) {
-	      TaskInProgress tip = iter.next();
-	      
-	      if (tip.getPartition() == assignPart) {
-		      // Select a tip if
-		      //   1. runnable   : still needs to be run and is not completed
-		      //   2. ~running   : no other node is running it
-		      //   3. earlier attempt failed : has not failed on this host
-		      //                               and has failed on all the other hosts
-		      // A TIP is removed from the list if 
-		      // (1) this tip is scheduled
-		      // (2) if the passed list is a level 0 (host) cache
-		      // (3) when the TIP is non-schedulable (running, killed, complete)
-		      if (tip.isRunnable() && !tip.isRunning()) {
-		        // check if the tip has failed on this host
-		        if (!tip.hasFailedOnMachine(ttStatus.getHost()) || 
-		             tip.getNumberOfFailedMachines() >= numUniqueHosts) {
-		          // check if the tip has failed on all the nodes
-		          iter.remove();
-		          return tip;
-		        } else if (removeFailedTip) { 
-		          // the case where we want to remove a failed tip from the host cache
-		          // point#3 in the TIP removal logic above
-		          iter.remove();
-		        }
-		      } else {
-		        // see point#3 in the comment above for TIP removal logic
-		        iter.remove();
-		      }	      	
-	      }
-	
-	    }
+    	Integer assignPart = planAssignList.get(ttStatus.getTrackerName());
+    	if (assignPart != null) {
+  	    Iterator<TaskInProgress> iter = tips.iterator();
+  	    while (iter.hasNext()) {
+  	      TaskInProgress tip = iter.next();
+  	      
+  	      if (tip.getPartition() == assignPart) {
+  		      // Select a tip if
+  		      //   1. runnable   : still needs to be run and is not completed
+  		      //   2. ~running   : no other node is running it
+  		      //   3. earlier attempt failed : has not failed on this host
+  		      //                               and has failed on all the other hosts
+  		      // A TIP is removed from the list if 
+  		      // (1) this tip is scheduled
+  		      // (2) if the passed list is a level 0 (host) cache
+  		      // (3) when the TIP is non-schedulable (running, killed, complete)
+  		      if (tip.isRunnable() && !tip.isRunning()) {
+  		        // check if the tip has failed on this host
+  		        if (!tip.hasFailedOnMachine(ttStatus.getHost()) || 
+  		             tip.getNumberOfFailedMachines() >= numUniqueHosts) {
+  		          // check if the tip has failed on all the nodes
+  		          iter.remove();
+  		          return tip;
+  		        } else if (removeFailedTip) { 
+  		          // the case where we want to remove a failed tip from the host cache
+  		          // point#3 in the TIP removal logic above
+  		          iter.remove();
+  		        }
+  		      } else {
+  		        // see point#3 in the comment above for TIP removal logic
+  		        iter.remove();
+  		      }	      	
+  	      }
+  	    }    		
+    	}
   	}
     return null;
   }
@@ -3869,11 +3872,13 @@ public class JobInProgress {
 			Map<Integer, Map<String, Integer>> sortCalculateData = sortCalculateData();
 			// データ転送量が多い順でソートしたタスクリスト
 			List<Map.Entry<Integer, Integer>> sortMaxAndPartitionList = sortMaxAndPartitionList();
+			LOG.info("create Plan Assign List");
 			for (Entry<Integer, Integer> sortMaxAndPartition : sortMaxAndPartitionList) {
 				Map<String, Integer> partitionData = sortCalculateData.get(sortMaxAndPartition.getKey());
 				for (String taskTracker : partitionData.keySet()) {
 	    		if (!planAssignList.containsKey(taskTracker)) {
 	    			planAssignList.put(taskTracker, sortMaxAndPartition.getKey());
+	    			LOG.info(taskTracker + "," + sortMaxAndPartition.getKey());
 	    			break;
 	    		}
 				}
