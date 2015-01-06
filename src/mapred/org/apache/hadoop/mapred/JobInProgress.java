@@ -3844,8 +3844,10 @@ public class JobInProgress {
 				}
 				
 			});
+			LOG.info(part);
       for (Entry<String, Integer> s : entries) {
       	partitionResult.put(s.getKey(), s.getValue());
+      	LOG.info(s.getKey() + ", " + s.getValue());
       }
       result.put(part, partitionResult);
 		}
@@ -3876,6 +3878,7 @@ public class JobInProgress {
 			for (Entry<Integer, Integer> sortMaxAndPartition : sortMaxAndPartitionList) {
 				Map<String, Integer> partitionData = sortCalculateData.get(sortMaxAndPartition.getKey());
 				for (String taskTracker : partitionData.keySet()) {
+    			LOG.info(taskTracker + "," + sortMaxAndPartition.getKey());
 	    		if (!planAssignList.containsKey(taskTracker)) {
 	    			planAssignList.put(taskTracker, sortMaxAndPartition.getKey());
 	    			LOG.info(taskTracker + "," + sortMaxAndPartition.getKey());
