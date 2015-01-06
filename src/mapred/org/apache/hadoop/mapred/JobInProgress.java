@@ -3802,9 +3802,7 @@ public class JobInProgress {
 	public Map<Integer, Map<String, Integer>> calculateData() {
 		Map<Integer, Map<String, Integer>> result = new HashMap<Integer, Map<String,Integer>>();
 //		Map<Integer, Integer> maxAndPartition = new HashMap<Integer, Integer>();
-		LOG.info("calculateData");
 		for (Integer part : data.keySet()) {
-			LOG.info(part);
 			int max = 0;
 
 			Map<String, Integer> partitionResult = new TreeMap<String, Integer>();
@@ -3821,7 +3819,6 @@ public class JobInProgress {
 					max = dataVolume;
 				}
 				partitionResult.put(taskTrackerName, dataVolume);
-				LOG.info(taskTrackerName + ", " + dataVolume); 
 			}
 			maxAndPartition.put(part, max);
 			result.put(part, partitionResult);
@@ -3865,25 +3862,23 @@ public class JobInProgress {
 	}
 	
 	public Map<String, Integer> planAssignList() {
-		LOG.info("planAssignList");
 		if (assignList == null) {
 			// 割り当てノードとタスクの組み合わせリスト
 			Map<String, Integer> planAssignList = new HashMap<String, Integer>();
 			// ソートした転送データ
 			Map<Integer, Map<String, Integer>> sortCalculateData = sortCalculateData();
-			LOG.info("trace sortCalculateData");
-			for (Integer i : sortCalculateData.keySet()) {
-				LOG.info(i);
-				Map<String, Integer> map = sortCalculateData.get(i);
-				for (String s: map.keySet()) {
-					LOG.info(s + ", " + map.get(s));
-				}
-			}
+//			LOG.info("trace sortCalculateData");
+//			for (Integer i : sortCalculateData.keySet()) {
+//				LOG.info(i);
+//				Map<String, Integer> map = sortCalculateData.get(i);
+//				for (String s: map.keySet()) {
+//					LOG.info(s + ", " + map.get(s));
+//				}
+//			}
 			// データ転送量が多い順でソートしたタスクリスト
 			List<Map.Entry<Integer, Integer>> sortMaxAndPartitionList = sortMaxAndPartitionList();
 			LOG.info("create Plan Assign List");
 			for (Entry<Integer, Integer> sortMaxAndPartition : sortMaxAndPartitionList) {
-				LOG.info(sortMaxAndPartition.getKey());
 				Map<String, Integer> partitionData = sortCalculateData.get(sortMaxAndPartition.getKey());
 				for (String taskTracker : partitionData.keySet()) {
 	    		if (!planAssignList.containsKey(taskTracker)) {
