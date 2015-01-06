@@ -1179,7 +1179,7 @@ public class JobInProgress {
           			partitionData.put(taskTrackerName, dataVolume[i]);        				        				
         			}
         		} else {
-        			partitionData = new TreeMap<String, Integer>();
+        			partitionData = new HashMap<String, Integer>();
         			partitionData.put(taskTrackerName, dataVolume[i]);
         		}
         		data.put(i, partitionData);
@@ -3831,7 +3831,7 @@ public class JobInProgress {
 	
 	public Map<Integer, Map<String, Integer>> sortCalculateData() {
 		Map<Integer, Map<String, Integer>> calculateData = calculateData();
-		Map<Integer, Map<String, Integer>> result = new TreeMap<Integer, Map<String,Integer>>();
+		Map<Integer, Map<String, Integer>> result = new HashMap<Integer, Map<String,Integer>>();
 		
 		for (Integer part : calculateData.keySet()) {
 			Map<String, Integer> partitionData = calculateData.get(part);
@@ -3876,12 +3876,11 @@ public class JobInProgress {
 			List<Map.Entry<Integer, Integer>> sortMaxAndPartitionList = sortMaxAndPartitionList();
 			LOG.info("create Plan Assign List");
 			for (Entry<Integer, Integer> sortMaxAndPartition : sortMaxAndPartitionList) {
+				LOG.info(sortMaxAndPartition.getKey());
 				Map<String, Integer> partitionData = sortCalculateData.get(sortMaxAndPartition.getKey());
 				for (String taskTracker : partitionData.keySet()) {
-    			LOG.info(taskTracker + "," + sortMaxAndPartition.getKey());
 	    		if (!planAssignList.containsKey(taskTracker)) {
 	    			planAssignList.put(taskTracker, sortMaxAndPartition.getKey());
-	    			LOG.info(taskTracker + "," + sortMaxAndPartition.getKey());
 	    			break;
 	    		}
 				}
