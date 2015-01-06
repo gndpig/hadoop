@@ -3844,7 +3844,6 @@ public class JobInProgress {
 				}
 				
 			});
-			LOG.info(part);
       for (Entry<String, Integer> s : entries) {
       	partitionResult.put(s.getKey(), s.getValue());
       	LOG.info(s.getKey() + ", " + s.getValue());
@@ -3872,6 +3871,14 @@ public class JobInProgress {
 			Map<String, Integer> planAssignList = new HashMap<String, Integer>();
 			// ソートした転送データ
 			Map<Integer, Map<String, Integer>> sortCalculateData = sortCalculateData();
+			LOG.info("trace sortCalculateData");
+			for (Integer i : sortCalculateData.keySet()) {
+				LOG.info(i);
+				Map<String, Integer> map = sortCalculateData.get(i);
+				for (String s: map.keySet()) {
+					LOG.info(s + ", " + map.get(s));
+				}
+			}
 			// データ転送量が多い順でソートしたタスクリスト
 			List<Map.Entry<Integer, Integer>> sortMaxAndPartitionList = sortMaxAndPartitionList();
 			LOG.info("create Plan Assign List");
