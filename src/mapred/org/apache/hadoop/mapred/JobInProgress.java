@@ -3867,14 +3867,15 @@ public class JobInProgress {
 			Map<String, Integer> planAssignList = new HashMap<String, Integer>();
 			// ソートした転送データ
 			Map<Integer, Map<String, Integer>> sortCalculateData = sortCalculateData();
-//			LOG.info("trace sortCalculateData");
-//			for (Integer i : sortCalculateData.keySet()) {
-//				LOG.info(i);
-//				Map<String, Integer> map = sortCalculateData.get(i);
-//				for (String s: map.keySet()) {
-//					LOG.info(s + ", " + map.get(s));
-//				}
-//			}
+			// ソートした転送量データのデバッグ
+			LOG.info("trace sortCalculateData");
+			for (Integer i : sortCalculateData.keySet()) {
+				LOG.info(i);
+				Map<String, Integer> map = sortCalculateData.get(i);
+				for (String s: map.keySet()) {
+					LOG.info(s + ", " + map.get(s));
+				}
+			}
 			// データ転送量が多い順でソートしたタスクリスト
 			List<Map.Entry<Integer, Integer>> sortMaxAndPartitionList = sortMaxAndPartitionList();
 			LOG.info("create Plan Assign List");
@@ -3883,6 +3884,7 @@ public class JobInProgress {
 				for (String taskTracker : partitionData.keySet()) {
 	    		if (!planAssignList.containsKey(taskTracker)) {
 	    			planAssignList.put(taskTracker, sortMaxAndPartition.getKey());
+	    			LOG.info(taskTracker + ", " + sortMaxAndPartition.getKey());
 	    			break;
 	    		}
 				}
