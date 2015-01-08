@@ -58,7 +58,7 @@ public class IsolationRunner {
       LOG.info("Task " + taskid + " reporting done.");
     }
     
-    public void done(TaskAttemptID taskid, JvmContext jvmContext, int[] dataVolume)
+    public void done(TaskAttemptID taskid, JvmContext jvmContext, long[] dataVolume)
         throws IOException {
       LOG.info("Task " + taskid + " reporting done.");
     }

@@ -125,7 +125,7 @@ public interface TaskUmbilicalProtocol extends VersionedProtocol {
    * @param jvmContext context the jvmContext running the task.
    * @param dataVolume data volume
    */
-  void done(TaskAttemptID taskid, JvmContext jvmContext, int[] dataVolume) throws IOException;
+  void done(TaskAttemptID taskid, JvmContext jvmContext, long[] dataVolume) throws IOException;
   
   
   /** 

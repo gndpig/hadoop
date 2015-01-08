@@ -62,7 +62,7 @@ public abstract class TaskStatus implements Writable, Cloneable {
   private SortedRanges.Range nextRecordRange = new SortedRanges.Range();
   
   // タスクごとのデータ量
-  private int[] dataVolume = {};
+  private long[] dataVolume = {};
   
   public TaskStatus() {
     taskid = new TaskAttemptID();
@@ -384,11 +384,11 @@ public abstract class TaskStatus implements Writable, Cloneable {
     }
   }
   
-  public void setDataVolume(int[] dataVolume) {
+  public void setDataVolume(long[] dataVolume) {
   	this.dataVolume = dataVolume;
   }
   
-  public int[] getDataVolume() {
+  public long[] getDataVolume() {
   	return this.dataVolume;
   }
     
@@ -411,7 +411,7 @@ public abstract class TaskStatus implements Writable, Cloneable {
       counters.write(out);
     }
     nextRecordRange.write(out);
-    writeIntArray(out, dataVolume);
+    writeLongArray(out, dataVolume);
   }
   
   private void writeIntArray(DataOutput out, int[] s) throws IOException {
@@ -421,6 +421,14 @@ public abstract class TaskStatus implements Writable, Cloneable {
   	}
   }
 
+  private void writeLongArray(DataOutput out, long[] s) throws IOException {
+  	out.writeInt(s.length);
+  	for(int i = 0; i < s.length; i++) {
+  		out.writeLong(s[i]);
+  	}
+  }
+
+  
   public void readFields(DataInput in) throws IOException {
     this.taskid.readFields(in);
     this.progress = in.readFloat();
@@ -438,7 +446,7 @@ public abstract class TaskStatus implements Writable, Cloneable {
       counters.readFields(in);
     }
     nextRecordRange.readFields(in);
-    this.dataVolume = readIntArray(in);
+    this.dataVolume = readLongArray(in);
   }
   
   private int[] readIntArray(DataInput in) throws IOException {
@@ -451,6 +459,15 @@ public abstract class TaskStatus implements Writable, Cloneable {
   	return s;
   }
 
+  private long[] readLongArray(DataInput in) throws IOException {
+  	int len = in.readInt();
+  	if (len == -1) return null;
+  	long[] s = new long[len];
+  	for(int i = 0; i < len; i++) {
+  		s[i] = in.readLong();
+  	}
+  	return s;
+  }
   
   //////////////////////////////////////////////////////////////////////////////
   // Factory-like methods to create/read/write appropriate TaskStatus objects

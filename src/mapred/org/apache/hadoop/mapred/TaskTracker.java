@@ -3655,7 +3655,7 @@ public class TaskTracker implements MRConstants, TaskUmbilicalProtocol,
   /**
    * The task (Map task) is done.
    */
-  public synchronized void done(TaskAttemptID taskid, JvmContext jvmContext, int[] dataVolume)
+  public synchronized void done(TaskAttemptID taskid, JvmContext jvmContext, long[] dataVolume)
   throws IOException {
     authorizeJVM(taskid.getJobID());
     TaskInProgress tip = tasks.get(taskid);

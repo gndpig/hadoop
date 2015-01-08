@@ -535,7 +535,7 @@ public class LocalJobRunner implements JobSubmissionProtocol {
         throws IOException {
     }
    
-    public void done(TaskAttemptID taskId, JvmContext jvmContext, int[] dataVolume)
+    public void done(TaskAttemptID taskId, JvmContext jvmContext, long[] dataVolume)
         throws IOException {
     }
     

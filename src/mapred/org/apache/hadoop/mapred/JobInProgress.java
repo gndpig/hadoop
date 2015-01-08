@@ -164,11 +164,11 @@ public class JobInProgress {
   List<TaskAttemptID> reduceCleanupTasks = new LinkedList<TaskAttemptID>();
   
   // データ量
-  private Map<Integer, Map<String, Integer>> data;
+  private Map<Integer, Map<String, Long>> data;
   
   // Reduce タスクの割り当て済みタスクとノードの一覧
   private Map<String, Integer> assignList;
-  private Map<Integer, Integer> maxAndPartition = new HashMap<Integer, Integer>();
+  private Map<Integer, Long> maxAndPartition = new HashMap<Integer, Long>();
 
   // keep failedMaps, nonRunningReduces ordered by failure count to bias
   // scheduling toward failing tasks
@@ -362,7 +362,7 @@ public class JobInProgress {
     }
     this.queueMetrics = queue.getMetrics();
     
-    this.data = new TreeMap<Integer, Map<String,Integer>>();
+    this.data = new TreeMap<Integer, Map<String,Long>>();
 
     // Check task limits
     checkTaskLimits();
@@ -486,7 +486,7 @@ public class JobInProgress {
       this.reduce_input_limit = conf.getLong("mapreduce.reduce.input.limit", 
           DEFAULT_REDUCE_INPUT_LIMIT);
       
-      this.data = new TreeMap<Integer, Map<String,Integer>>();
+      this.data = new TreeMap<Integer, Map<String,Long>>();
 
       // register job's tokens for renewal
       DelegationTokenRenewal.registerDelegationTokensForRenewal(
@@ -1168,19 +1168,19 @@ public class JobInProgress {
         // taskTracker 毎の dataVolumes の更新
         if (status.getIsMap()) {
         	String taskTrackerName = status.getTaskTracker();
-        	int[] dataVolume = status.getDataVolume();
+        	long[] dataVolume = status.getDataVolume();
         	// 改訂版
         	for (int i = 0; i < conf.getNumReduceTasks(); i++) {
-        		Map<String, Integer> partitionData = data.get(i);
+        		Map<String, Long> partitionData = data.get(i);
         		if (partitionData != null) {
-        			Integer taskTrackerPartitionData = partitionData.get(taskTrackerName);
+        			Long taskTrackerPartitionData = partitionData.get(taskTrackerName);
         			if (taskTrackerPartitionData != null) {
           			partitionData.put(taskTrackerName, taskTrackerPartitionData + dataVolume[i]);        				
         			} else {
           			partitionData.put(taskTrackerName, dataVolume[i]);        				        				
         			}
         		} else {
-        			partitionData = new HashMap<String, Integer>();
+        			partitionData = new HashMap<String, Long>();
         			partitionData.put(taskTrackerName, dataVolume[i]);
         		}
         		data.put(i, partitionData);
@@ -3799,17 +3799,17 @@ public class JobInProgress {
     return level;
   }
   
-	public Map<Integer, Map<String, Integer>> calculateData() {
-		Map<Integer, Map<String, Integer>> result = new HashMap<Integer, Map<String,Integer>>();
+	public Map<Integer, Map<String, Long>> calculateData() {
+		Map<Integer, Map<String, Long>> result = new HashMap<Integer, Map<String,Long>>();
 //		Map<Integer, Integer> maxAndPartition = new HashMap<Integer, Integer>();
 		for (Integer part : data.keySet()) {
-			int max = 0;
+			long max = 0;
 
-			Map<String, Integer> partitionResult = new TreeMap<String, Integer>();
-			Map<String, Integer> partitionData = data.get(part);
+			Map<String, Long> partitionResult = new TreeMap<String, Long>();
+			Map<String, Long> partitionData = data.get(part);
 			
 			for (String taskTrackerName : partitionData.keySet()) {
-				int dataVolume = 0;
+				long dataVolume = 0;
 				for (String taskTrackerName1 : partitionData.keySet()) {
 					if (taskTrackerName != taskTrackerName1) {
 						dataVolume += partitionData.get(taskTrackerName1);
@@ -3826,22 +3826,22 @@ public class JobInProgress {
 		return result;
 	}
 	
-	public Map<Integer, Map<String, Integer>> sortCalculateData() {
-		Map<Integer, Map<String, Integer>> calculateData = calculateData();
-		Map<Integer, Map<String, Integer>> result = new HashMap<Integer, Map<String,Integer>>();
+	public Map<Integer, Map<String, Long>> sortCalculateData() {
+		Map<Integer, Map<String, Long>> calculateData = calculateData();
+		Map<Integer, Map<String, Long>> result = new HashMap<Integer, Map<String,Long>>();
 		
 		for (Integer part : calculateData.keySet()) {
-			Map<String, Integer> partitionData = calculateData.get(part);
-			Map<String, Integer> partitionResult = new LinkedHashMap<String, Integer>();
-			List<Map.Entry<String, Integer>> entries = new ArrayList<Map.Entry<String,Integer>>(partitionData.entrySet());
-			Collections.sort(entries, new Comparator<Map.Entry<String, Integer>>() {
+			Map<String, Long> partitionData = calculateData.get(part);
+			Map<String, Long> partitionResult = new LinkedHashMap<String, Long>();
+			List<Map.Entry<String, Long>> entries = new ArrayList<Map.Entry<String,Long>>(partitionData.entrySet());
+			Collections.sort(entries, new Comparator<Map.Entry<String, Long>>() {
 				@Override
-				public int compare(Entry<String, Integer> entry1, Entry<String, Integer> entry2) {
-					return ((Integer)entry1.getValue()).compareTo((Integer)entry2.getValue());
+				public int compare(Entry<String, Long> entry1, Entry<String, Long> entry2) {
+					return ((Long)entry1.getValue()).compareTo((Long)entry2.getValue());
 				}
 				
 			});
-      for (Entry<String, Integer> s : entries) {
+      for (Entry<String, Long> s : entries) {
       	partitionResult.put(s.getKey(), s.getValue());
       }
       result.put(part, partitionResult);
@@ -3850,12 +3850,12 @@ public class JobInProgress {
 		return result;		
 	}
 	
-	public List<Map.Entry<Integer, Integer>> sortMaxAndPartitionList() {
-		List<Map.Entry<Integer, Integer>> entries = new ArrayList<Map.Entry<Integer,Integer>>(maxAndPartition.entrySet());
-		Collections.sort(entries, new Comparator<Map.Entry<Integer, Integer>>() {
+	public List<Map.Entry<Integer, Long>> sortMaxAndPartitionList() {
+		List<Map.Entry<Integer, Long>> entries = new ArrayList<Map.Entry<Integer,Long>>(maxAndPartition.entrySet());
+		Collections.sort(entries, new Comparator<Map.Entry<Integer, Long>>() {
 			@Override
-			public int compare(Entry<Integer, Integer> entry1, Entry<Integer, Integer> entry2) {
-				return ((Integer)entry2.getValue()).compareTo((Integer)entry1.getValue());
+			public int compare(Entry<Integer, Long> entry1, Entry<Integer, Long> entry2) {
+				return ((Long)entry2.getValue()).compareTo((Long)entry1.getValue());
 			}
 		});		
 		return entries;
@@ -3866,21 +3866,21 @@ public class JobInProgress {
 			// 割り当てノードとタスクの組み合わせリスト
 			Map<String, Integer> planAssignList = new HashMap<String, Integer>();
 			// ソートした転送データ
-			Map<Integer, Map<String, Integer>> sortCalculateData = sortCalculateData();
+			Map<Integer, Map<String, Long>> sortCalculateData = sortCalculateData();
 			// ソートした転送量データのデバッグ
 			LOG.info("trace sortCalculateData");
 			for (Integer i : sortCalculateData.keySet()) {
 				LOG.info(i);
-				Map<String, Integer> map = sortCalculateData.get(i);
+				Map<String, Long> map = sortCalculateData.get(i);
 				for (String s: map.keySet()) {
 					LOG.info(s + ", " + map.get(s));
 				}
 			}
 			// データ転送量が多い順でソートしたタスクリスト
-			List<Map.Entry<Integer, Integer>> sortMaxAndPartitionList = sortMaxAndPartitionList();
+			List<Map.Entry<Integer, Long>> sortMaxAndPartitionList = sortMaxAndPartitionList();
 			LOG.info("create Plan Assign List");
-			for (Entry<Integer, Integer> sortMaxAndPartition : sortMaxAndPartitionList) {
-				Map<String, Integer> partitionData = sortCalculateData.get(sortMaxAndPartition.getKey());
+			for (Entry<Integer, Long> sortMaxAndPartition : sortMaxAndPartitionList) {
+				Map<String, Long> partitionData = sortCalculateData.get(sortMaxAndPartition.getKey());
 				for (String taskTracker : partitionData.keySet()) {
 	    		if (!planAssignList.containsKey(taskTracker)) {
 	    			planAssignList.put(taskTracker, sortMaxAndPartition.getKey());

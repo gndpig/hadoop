@@ -167,7 +167,7 @@ abstract public class Task implements Writable, Configurable {
   protected JvmContext jvmContext;
   
   // パーティション毎のデータ量 (MapTask のみ使用)
-  protected int[] dataVolume = {};
+  protected long[] dataVolume = {};
 
   
   ////////////////////////////////////////////

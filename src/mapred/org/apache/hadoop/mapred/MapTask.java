@@ -162,7 +162,7 @@ class MapTask extends Task {
   @Override
   public void setConf(Configuration conf) {
 	  super.setConf(conf);
-	  this.dataVolume = new int[this.conf.getNumReduceTasks()];
+	  this.dataVolume = new long[this.conf.getNumReduceTasks()];
   }
 
   /**
