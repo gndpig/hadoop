@@ -166,9 +166,14 @@ public class JobInProgress {
   // データ量
   private Map<Integer, Map<String, Long>> data;
   
-  // Reduce タスクの割り当て済みタスクとノードの一覧
+  // 割当て予定のReduce タスクとノードの一覧
   private Map<String, Integer> assignList;
   private Map<Integer, Long> maxAndPartition = new HashMap<Integer, Long>();
+
+  // 割当て済みReduceタスク
+  private List<Integer> assignedReduceTask = new ArrayList<Integer>();
+  // 割り当て済みノード
+  private List<String> assignedTaskTracker = new ArrayList<String>();
 
   // keep failedMaps, nonRunningReduces ordered by failure count to bias
   // scheduling toward failing tasks
@@ -2305,6 +2310,8 @@ public class JobInProgress {
   		             tip.getNumberOfFailedMachines() >= numUniqueHosts) {
   		          // check if the tip has failed on all the nodes
   		          iter.remove();
+  		          assignedReduceTask.add(assignPart);
+  		          assignedTaskTracker.add(ttStatus.getTrackerName());
   		          return tip;
   		        } else if (removeFailedTip) { 
   		          // the case where we want to remove a failed tip from the host cache
@@ -3803,12 +3810,18 @@ public class JobInProgress {
 		Map<Integer, Map<String, Long>> result = new HashMap<Integer, Map<String,Long>>();
 //		Map<Integer, Integer> maxAndPartition = new HashMap<Integer, Integer>();
 		for (Integer part : data.keySet()) {
+			if (assignedReduceTask.contains(part)) {
+				continue;
+			}
 			long max = 0;
 
 			Map<String, Long> partitionResult = new TreeMap<String, Long>();
 			Map<String, Long> partitionData = data.get(part);
 			
 			for (String taskTrackerName : partitionData.keySet()) {
+				if (assignedTaskTracker.contains(taskTrackerName)) {
+					continue;
+				}
 				long dataVolume = 0;
 				for (String taskTrackerName1 : partitionData.keySet()) {
 					if (taskTrackerName != taskTrackerName1) {
@@ -3862,7 +3875,7 @@ public class JobInProgress {
 	}
 	
 	public Map<String, Integer> planAssignList() {
-		if (assignList == null) {
+//		if (assignList == null) {
 			// 割り当てノードとタスクの組み合わせリスト
 			Map<String, Integer> planAssignList = new HashMap<String, Integer>();
 			// ソートした転送データ
@@ -3889,10 +3902,11 @@ public class JobInProgress {
 	    		}
 				}
 			}
-			assignList = planAssignList;			
-		} else {
-		}
-		return assignList;
+			return planAssignList;
+//			assignList = planAssignList;			
+//		} else {
+//		}
+//		return assignList;
 	}
   
 }
