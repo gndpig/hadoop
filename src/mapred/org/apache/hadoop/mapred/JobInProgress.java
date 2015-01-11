@@ -1175,40 +1175,41 @@ public class JobInProgress {
         	
         	
         	// 新改訂版
-        	for(TaskInProgress nontip : nonRunningReduces) {
-        		int part = nontip.getPartition();
-
-        		Map<String, Long> partitionData = data.get(part);
-        		if (partitionData != null) {
-        			Long taskTrackerPartitionData = partitionData.get(taskTrackerName);
-        			if (taskTrackerPartitionData != null) {
-          			partitionData.put(taskTrackerName, taskTrackerPartitionData + dataVolume[part]);        				
-        			} else {
-          			partitionData.put(taskTrackerName, dataVolume[part]);        				        				
-        			}
-        		} else {
-        			partitionData = new HashMap<String, Long>();
-        			partitionData.put(taskTrackerName, dataVolume[part]);
-        		}
-        		data.put(part, partitionData);
-        	}
-        	
-//        	// 改訂版
-//        	for (int i = 0; i < conf.getNumReduceTasks(); i++) {
-//        		Map<String, Long> partitionData = data.get(i);
+//        	for(TaskInProgress nontip : nonRunningReduces) {
+//        		// 未実行Reduceタスクのパーティション
+//        		int part = nontip.getPartition();
+//        		// 未実行のReduceタスクの保持しているパーティションのデータ量
+//        		Map<String, Long> partitionData = data.get(part);
 //        		if (partitionData != null) {
 //        			Long taskTrackerPartitionData = partitionData.get(taskTrackerName);
 //        			if (taskTrackerPartitionData != null) {
-//          			partitionData.put(taskTrackerName, taskTrackerPartitionData + dataVolume[i]);        				
+//          			partitionData.put(taskTrackerName, taskTrackerPartitionData + dataVolume[part]);        				
 //        			} else {
-//          			partitionData.put(taskTrackerName, dataVolume[i]);        				        				
+//          			partitionData.put(taskTrackerName, dataVolume[part]);        				        				
 //        			}
 //        		} else {
 //        			partitionData = new HashMap<String, Long>();
-//        			partitionData.put(taskTrackerName, dataVolume[i]);
+//        			partitionData.put(taskTrackerName, dataVolume[part]);
 //        		}
-//        		data.put(i, partitionData);
+//        		data.put(part, partitionData);
 //        	}
+        	
+//        	// 改訂版
+        	for (int i = 0; i < conf.getNumReduceTasks(); i++) {
+        		Map<String, Long> partitionData = data.get(i);
+        		if (partitionData != null) {
+        			Long taskTrackerPartitionData = partitionData.get(taskTrackerName);
+        			if (taskTrackerPartitionData != null) {
+          			partitionData.put(taskTrackerName, taskTrackerPartitionData + dataVolume[i]);        				
+        			} else {
+          			partitionData.put(taskTrackerName, dataVolume[i]);        				        				
+        			}
+        		} else {
+        			partitionData = new HashMap<String, Long>();
+        			partitionData.put(taskTrackerName, dataVolume[i]);
+        		}
+        		data.put(i, partitionData);
+        	}
         }
       } else if (state == TaskStatus.State.COMMIT_PENDING) {
         // If it is the first attempt reporting COMMIT_PENDING
@@ -3930,5 +3931,5 @@ public class JobInProgress {
 //		} else {
 //		}
 //s		return assignList;
-	}
+	}  
 }
