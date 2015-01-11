@@ -3918,7 +3918,7 @@ public class JobInProgress {
 			for (Entry<Integer, Long> sortMaxAndPartition : sortMaxAndPartitionList) {
 				Map<String, Long> partitionData = sortCalculateData.get(sortMaxAndPartition.getKey());
 				for (String taskTracker : partitionData.keySet()) {
-	    		if (!assignedList.containsKey(taskTracker)) {
+	    		if (!assignedList.containsKey(taskTracker) && !planAssignList.containsKey(taskTracker)) {
 	    			planAssignList.put(taskTracker, sortMaxAndPartition.getKey());
 	    			LOG.info(taskTracker + ", " + sortMaxAndPartition.getKey());
 	    			break;
@@ -3931,5 +3931,4 @@ public class JobInProgress {
 //		}
 //s		return assignList;
 	}
-  
 }
