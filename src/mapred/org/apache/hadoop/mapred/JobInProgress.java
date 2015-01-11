@@ -1175,41 +1175,40 @@ public class JobInProgress {
         	
         	
         	// 新改訂版
-//        	for(TaskInProgress nontip : nonRunningReduces) {
-//        		// 未実行Reduceタスクのパーティション
-//        		int part = nontip.getPartition();
-//        		// 未実行のReduceタスクの保持しているパーティションのデータ量
-//        		Map<String, Long> partitionData = data.get(part);
-//        		if (partitionData != null) {
-//        			Long taskTrackerPartitionData = partitionData.get(taskTrackerName);
-//        			if (taskTrackerPartitionData != null) {
-//          			partitionData.put(taskTrackerName, taskTrackerPartitionData + dataVolume[part]);        				
-//        			} else {
-//          			partitionData.put(taskTrackerName, dataVolume[part]);        				        				
-//        			}
-//        		} else {
-//        			partitionData = new HashMap<String, Long>();
-//        			partitionData.put(taskTrackerName, dataVolume[part]);
-//        		}
-//        		data.put(part, partitionData);
-//        	}
-        	
-//        	// 改訂版
-        	for (int i = 0; i < conf.getNumReduceTasks(); i++) {
-        		Map<String, Long> partitionData = data.get(i);
+        	for(TaskInProgress nontip : nonRunningReduces) {
+        		int part = nontip.getPartition();
+
+        		Map<String, Long> partitionData = data.get(part);
         		if (partitionData != null) {
         			Long taskTrackerPartitionData = partitionData.get(taskTrackerName);
         			if (taskTrackerPartitionData != null) {
-          			partitionData.put(taskTrackerName, taskTrackerPartitionData + dataVolume[i]);        				
+          			partitionData.put(taskTrackerName, taskTrackerPartitionData + dataVolume[part]);        				
         			} else {
-          			partitionData.put(taskTrackerName, dataVolume[i]);        				        				
+          			partitionData.put(taskTrackerName, dataVolume[part]);        				        				
         			}
         		} else {
         			partitionData = new HashMap<String, Long>();
-        			partitionData.put(taskTrackerName, dataVolume[i]);
+        			partitionData.put(taskTrackerName, dataVolume[part]);
         		}
-        		data.put(i, partitionData);
+        		data.put(part, partitionData);
         	}
+        	
+//        	// 改訂版
+//        	for (int i = 0; i < conf.getNumReduceTasks(); i++) {
+//        		Map<String, Long> partitionData = data.get(i);
+//        		if (partitionData != null) {
+//        			Long taskTrackerPartitionData = partitionData.get(taskTrackerName);
+//        			if (taskTrackerPartitionData != null) {
+//          			partitionData.put(taskTrackerName, taskTrackerPartitionData + dataVolume[i]);        				
+//        			} else {
+//          			partitionData.put(taskTrackerName, dataVolume[i]);        				        				
+//        			}
+//        		} else {
+//        			partitionData = new HashMap<String, Long>();
+//        			partitionData.put(taskTrackerName, dataVolume[i]);
+//        		}
+//        		data.put(i, partitionData);
+//        	}
         }
       } else if (state == TaskStatus.State.COMMIT_PENDING) {
         // If it is the first attempt reporting COMMIT_PENDING
@@ -3899,9 +3898,9 @@ public class JobInProgress {
 			// 割り当てノードとタスクの組み合わせリスト
 			Map<String, Integer> planAssignList = new HashMap<String, Integer>();
 			// すでに割り当てたタスクは削除
-//			for (String taskTracker : assignedList.keySet()) {
-//				data.remove(assignedList.get(taskTracker));
-//			}
+			for (String taskTracker : assignedList.keySet()) {
+				data.remove(assignedList.get(taskTracker));
+			}
 			// ソートした転送データ
 			Map<Integer, Map<String, Long>> sortCalculateData = sortCalculateData();
 			// ソートした転送量データのデバッグ
@@ -3919,7 +3918,7 @@ public class JobInProgress {
 			for (Entry<Integer, Long> sortMaxAndPartition : sortMaxAndPartitionList) {
 				Map<String, Long> partitionData = sortCalculateData.get(sortMaxAndPartition.getKey());
 				for (String taskTracker : partitionData.keySet()) {
-	    		if (!assignedList.containsKey(taskTracker) && !planAssignList.containsKey(taskTracker)) {
+	    		if (!assignedList.containsKey(taskTracker)) {
 	    			planAssignList.put(taskTracker, sortMaxAndPartition.getKey());
 	    			LOG.info(taskTracker + ", " + sortMaxAndPartition.getKey());
 	    			break;
@@ -3932,63 +3931,5 @@ public class JobInProgress {
 //		}
 //s		return assignList;
 	}
-//	
-//	public Map<String, Integer> maxAssignList() {
-//		Map<String, Integer> maxAssignList = new HashMap<String, Integer>();
-//		
-//		// 保持データ量を多い順でソートした
-//		Map<Integer, >
-//		// データ転送量が多い順でソートしたタスクリスト
-//		List<Map.Entry<Integer, Long>> sortMaxList = sortMaxList();
-//		LOG.info("create Plan Assign List");
-//		for (Entry<Integer, Long> sortMaxAndPartition : sortMaxList) {
-//			Map<String, Long> partitionData = sortCalculateData.get(sortMaxAndPartition.getKey());
-//			for (String taskTracker : partitionData.keySet()) {
-//    		if (!assignedList.containsKey(taskTracker)) {
-//    			planAssignList.put(taskTracker, sortMaxAndPartition.getKey());
-//    			LOG.info(taskTracker + ", " + sortMaxAndPartition.getKey());
-//    			break;
-//    		}
-//			}
-//		}
-//
-//		
-//		return maxAssignList;
-//	}
-//	
-//	public Map<Integer, Map<String, Long>> sortData() {
-//		Map<Integer, Map<String, Long>> result = new HashMap<Integer, Map<String,Long>>();
-//		
-//		for (Integer part : data.keySet()) {
-//			Map<String, Long> partitionData = data.get(part);
-//			Map<String, Long> partitionResult = new LinkedHashMap<String, Long>();
-//			List<Map.Entry<String, Long>> entries = new ArrayList<Map.Entry<String,Long>>(partitionData.entrySet());
-//			Collections.sort(entries, new Comparator<Map.Entry<String, Long>>() {
-//				@Override
-//				public int compare(Entry<String, Long> entry1, Entry<String, Long> entry2) {
-//					return ((Long)entry1.getValue()).compareTo((Long)entry2.getValue());
-//				}
-//				
-//			});
-//      for (Entry<String, Long> s : entries) {
-//      	partitionResult.put(s.getKey(), s.getValue());
-//      }
-//      result.put(part, partitionResult);
-//		}
-//				
-//		return result;		
-//	}
-//
-//	
-//	public List<Map.Entry<Integer, Long>> sortMaxList() {
-//		List<Map.Entry<Integer, Long>> entries = new ArrayList<Map.Entry<Integer,Long>>(maxAndPartition.entrySet());
-//		Collections.sort(entries, new Comparator<Map.Entry<Integer, Long>>() {
-//			@Override
-//			public int compare(Entry<Integer, Long> entry1, Entry<Integer, Long> entry2) {
-//				return ((Long)entry2.getValue()).compareTo((Long)entry1.getValue());
-//			}
-//		});		
-//		return entries;
-//	}	
   
 }
