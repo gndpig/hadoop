@@ -167,13 +167,15 @@ public class JobInProgress {
   private Map<Integer, Map<String, Long>> data;
   
   // 割当て予定のReduce タスクとノードの一覧
-  private Map<String, Integer> assignList;
-  private Map<Integer, Long> maxAndPartition = new HashMap<Integer, Long>();
+//  private Map<String, Integer> assignList;
+  private Map<Integer, Long> maxAndPartition;
 
   // 割当て済みReduceタスク
   private List<Integer> assignedReduceTask = new ArrayList<Integer>();
   // 割り当て済みノード
   private List<String> assignedTaskTracker = new ArrayList<String>();
+  // タスクごとの一番大きいパーティション
+  private Map<Integer, Long> maxPartition;
 
   // keep failedMaps, nonRunningReduces ordered by failure count to bias
   // scheduling toward failing tasks
@@ -2286,7 +2288,8 @@ public class JobInProgress {
       Collection<TaskInProgress> tips, TaskTrackerStatus ttStatus,
       int numUniqueHosts,
       boolean removeFailedTip) {
-  	Map<String, Integer> planAssignList = planAssignList();
+//  	Map<String, Integer> planAssignList = planAssignList();
+  	Map<String, Integer> planAssignList = maxAssignList();
   	if (planAssignList != null) {
     	Integer assignPart = planAssignList.get(ttStatus.getTrackerName());
     	if (assignPart != null) {
@@ -3814,7 +3817,7 @@ public class JobInProgress {
 			if (assignedReduceTask.contains(part)) {
 				continue;
 			}
-			long max = 0;
+			long min = Integer.MAX_VALUE;
 
 			Map<String, Long> partitionResult = new TreeMap<String, Long>();
 			Map<String, Long> partitionData = data.get(part);
@@ -3829,12 +3832,12 @@ public class JobInProgress {
 						dataVolume += partitionData.get(taskTrackerName1);
 					}
 				}
-				if (max < dataVolume) {
-					max = dataVolume;
+				if (min > dataVolume) {
+					min = dataVolume;
 				}
 				partitionResult.put(taskTrackerName, dataVolume);
 			}
-			maxAndPartition.put(part, max);
+			maxAndPartition.put(part, min);
 			result.put(part, partitionResult);
 		}
 		return result;
@@ -3869,47 +3872,151 @@ public class JobInProgress {
 		Collections.sort(entries, new Comparator<Map.Entry<Integer, Long>>() {
 			@Override
 			public int compare(Entry<Integer, Long> entry1, Entry<Integer, Long> entry2) {
+				return ((Long)entry1.getValue()).compareTo((Long)entry2.getValue());
+			}
+		});		
+		return entries;
+	}
+
+	// 提案手法
+	public synchronized Map<String, Integer> planAssignList() {
+		// 割り当てノードとタスクの組み合わせリスト
+		Map<String, Integer> planAssignList = new HashMap<String, Integer>();
+		// ソートした転送データ
+		Map<Integer, Map<String, Long>> sortCalculateData = sortCalculateData();
+		// ソートした転送量データのデバッグ
+		LOG.info("trace sortCalculateData");
+		for (Integer i : sortCalculateData.keySet()) {
+			LOG.info(i);
+			Map<String, Long> map = sortCalculateData.get(i);
+			for (String s: map.keySet()) {
+				LOG.info(s + ", " + map.get(s));
+			}
+		}
+		// データ転送量が多い順でソートしたタスクリスト
+		List<Map.Entry<Integer, Long>> sortMaxAndPartitionList = sortMaxAndPartitionList();
+		LOG.info("create Plan Assign List");
+		for (Entry<Integer, Long> sortMaxAndPartition : sortMaxAndPartitionList) {
+			Map<String, Long> partitionData = sortCalculateData.get(sortMaxAndPartition.getKey());
+			if (partitionData != null) {
+				for (String taskTracker : partitionData.keySet()) {
+	    		if (!planAssignList.containsKey(taskTracker)) {
+	    			planAssignList.put(taskTracker, sortMaxAndPartition.getKey());
+	    			LOG.info(taskTracker + ", " + sortMaxAndPartition.getKey());
+	    			break;
+	    		}
+				}					
+			}
+		}
+		return planAssignList;
+	}
+
+	// 既存手法
+	public synchronized Map<String, Integer> maxAssignList() {
+		Map<String, Integer> maxAssignList = new HashMap<String, Integer>();
+		// パーティション毎のデータ量を大きい順に並び替え
+		Map<Integer, Map<String, Long>> sortMaxData = sortMaxData();
+		
+		// パーティション毎のデータ量を大きい順でソートしたタスクリスト
+		List<Map.Entry<Integer, Long>> sortMaxPartitionList = sortMaxPartitionList();
+		for (Entry<Integer, Long> sortMaxAndPartition : sortMaxPartitionList) {
+			Map<String, Long> partitionData = sortMaxData.get(sortMaxAndPartition.getKey());
+			if (partitionData != null) {
+				for (String taskTracker : partitionData.keySet()) {
+	    		if (!maxAssignList.containsKey(taskTracker)) {
+	    			maxAssignList.put(taskTracker, sortMaxAndPartition.getKey());
+	    			LOG.info(taskTracker + ", " + sortMaxAndPartition.getKey());
+	    			break;
+	    		}
+				}					
+			}
+		}
+		return maxAssignList;
+	}
+	
+	public synchronized Map<Integer, Map<String, Long>> sortMaxData() {
+		Map<Integer, Map<String, Long>> result = new HashMap<Integer, Map<String,Long>>();
+		maxPartition = new HashMap<Integer, Long>();
+		for (Integer part : data.keySet()) {
+			if (assignedReduceTask.contains(part)) {
+				continue;
+			}
+			long max = 0;
+			Map<String, Long> partitionData = data.get(part);
+			Map<String, Long> partitionResult = new LinkedHashMap<String, Long>();
+			List<Map.Entry<String, Long>> entries = new ArrayList<Map.Entry<String,Long>>(partitionData.entrySet());
+			Collections.sort(entries, new Comparator<Map.Entry<String, Long>>() {
+				@Override
+				public int compare(Entry<String, Long> entry1, Entry<String, Long> entry2) {
+					return ((Long)entry2.getValue()).compareTo((Long)entry1.getValue());
+				}
+				
+			});
+      for (Entry<String, Long> s : entries) {
+      	if (assignedTaskTracker.contains(s.getKey())) {
+      		continue;
+      	}
+      	partitionResult.put(s.getKey(), s.getValue());
+      	if (max < s.getValue()) {
+      		max = s.getValue();
+      	}
+      }
+      result.put(part, partitionResult);
+      maxPartition.put(part, max);
+		}		
+		return result;		
+	}
+	
+	public synchronized List<Map.Entry<Integer, Long>> sortMaxPartitionList() {
+		List<Map.Entry<Integer, Long>> entries = new ArrayList<Map.Entry<Integer,Long>>(maxPartition.entrySet());
+		Collections.sort(entries, new Comparator<Map.Entry<Integer, Long>>() {
+			@Override
+			public int compare(Entry<Integer, Long> entry1, Entry<Integer, Long> entry2) {
 				return ((Long)entry2.getValue()).compareTo((Long)entry1.getValue());
 			}
 		});		
 		return entries;
 	}
-	
-	public synchronized Map<String, Integer> planAssignList() {
-//		if (assignList == null) {
-			// 割り当てノードとタスクの組み合わせリスト
-			Map<String, Integer> planAssignList = new HashMap<String, Integer>();
-			// ソートした転送データ
-			Map<Integer, Map<String, Long>> sortCalculateData = sortCalculateData();
-			// ソートした転送量データのデバッグ
-			LOG.info("trace sortCalculateData");
-			for (Integer i : sortCalculateData.keySet()) {
-				LOG.info(i);
-				Map<String, Long> map = sortCalculateData.get(i);
-				for (String s: map.keySet()) {
-					LOG.info(s + ", " + map.get(s));
-				}
-			}
-			// データ転送量が多い順でソートしたタスクリスト
-			List<Map.Entry<Integer, Long>> sortMaxAndPartitionList = sortMaxAndPartitionList();
-			LOG.info("create Plan Assign List");
-			for (Entry<Integer, Long> sortMaxAndPartition : sortMaxAndPartitionList) {
-				Map<String, Long> partitionData = sortCalculateData.get(sortMaxAndPartition.getKey());
-				if (partitionData != null) {
-					for (String taskTracker : partitionData.keySet()) {
-		    		if (!planAssignList.containsKey(taskTracker)) {
-		    			planAssignList.put(taskTracker, sortMaxAndPartition.getKey());
-		    			LOG.info(taskTracker + ", " + sortMaxAndPartition.getKey());
-		    			break;
-		    		}
-					}					
-				}
-			}
-			return planAssignList;
-//			assignList = planAssignList;			
-//		} else {
+
+//	public synchronized Map<String, Integer> minAssignList() {
+//		int reduces = this.conf.getNumReduceTasks();
+//		int nodes = 8;
+//		
+//    Permutation p = new Permutation(nodes, reduces);
+//    
+//		List<String[]> list = new ArrayList<String[]>();
+//
+//    
+//    for(int i = 0; i < p.getSize(); ++i){
+//    	list.add(p.toArray(i));
+//    }
+//
+//		
+//		
+//		long min = Integer.MAX_VALUE;
+//		
+//		String[] assign;
+//		for (String[] l : list) {
+//			long result = 0;
+//			for (Integer part : data.keySet()) {
+//				result += data.get(part).get(l[part]);
+//			}
+//			if (min > result) {
+//				assign = l;
+//			}
 //		}
-//		return assignList;
-	}
-  
+//		
+//		
+//		
+//		
+//		Map<String, Integer> minAssignList = new HashMap<String, Integer>();
+//		// データ転送量の計算
+//		Map<Integer, Map<String, Long>> sortCalculateData = sortCalculateData();
+//		for (Integer part : sortCalculateData.keySet()) {
+//			for(String taskTracker : sortCalculateData.get(part).keySet()) {
+//				
+//			}
+//		}
+//		return minAssignList;
+//	}
 }
