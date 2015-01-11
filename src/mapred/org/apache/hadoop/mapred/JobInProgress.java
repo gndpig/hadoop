@@ -167,8 +167,11 @@ public class JobInProgress {
   private Map<Integer, Map<String, Long>> data;
   
   // Reduce タスクの割り当て済みタスクとノードの一覧
-  private Map<String, Integer> assignList;
+  //private Map<String, Integer> assignList;
   private Map<Integer, Long> maxAndPartition = new HashMap<Integer, Long>();
+  
+  // 割り当てたタスクとノード
+  private Map<String, Integer> assignedList = new HashMap<String, Integer>();
 
   // keep failedMaps, nonRunningReduces ordered by failure count to bias
   // scheduling toward failing tasks
@@ -1169,22 +1172,43 @@ public class JobInProgress {
         if (status.getIsMap()) {
         	String taskTrackerName = status.getTaskTracker();
         	long[] dataVolume = status.getDataVolume();
-        	// 改訂版
-        	for (int i = 0; i < conf.getNumReduceTasks(); i++) {
-        		Map<String, Long> partitionData = data.get(i);
+        	
+        	
+        	// 新改訂版
+        	for(TaskInProgress nontip : nonRunningReduces) {
+        		int part = nontip.getPartition();
+
+        		Map<String, Long> partitionData = data.get(part);
         		if (partitionData != null) {
         			Long taskTrackerPartitionData = partitionData.get(taskTrackerName);
         			if (taskTrackerPartitionData != null) {
-          			partitionData.put(taskTrackerName, taskTrackerPartitionData + dataVolume[i]);        				
+          			partitionData.put(taskTrackerName, taskTrackerPartitionData + dataVolume[part]);        				
         			} else {
-          			partitionData.put(taskTrackerName, dataVolume[i]);        				        				
+          			partitionData.put(taskTrackerName, dataVolume[part]);        				        				
         			}
         		} else {
         			partitionData = new HashMap<String, Long>();
-        			partitionData.put(taskTrackerName, dataVolume[i]);
+        			partitionData.put(taskTrackerName, dataVolume[part]);
         		}
-        		data.put(i, partitionData);
+        		data.put(part, partitionData);
         	}
+        	
+//        	// 改訂版
+//        	for (int i = 0; i < conf.getNumReduceTasks(); i++) {
+//        		Map<String, Long> partitionData = data.get(i);
+//        		if (partitionData != null) {
+//        			Long taskTrackerPartitionData = partitionData.get(taskTrackerName);
+//        			if (taskTrackerPartitionData != null) {
+//          			partitionData.put(taskTrackerName, taskTrackerPartitionData + dataVolume[i]);        				
+//        			} else {
+//          			partitionData.put(taskTrackerName, dataVolume[i]);        				        				
+//        			}
+//        		} else {
+//        			partitionData = new HashMap<String, Long>();
+//        			partitionData.put(taskTrackerName, dataVolume[i]);
+//        		}
+//        		data.put(i, partitionData);
+//        	}
         }
       } else if (state == TaskStatus.State.COMMIT_PENDING) {
         // If it is the first attempt reporting COMMIT_PENDING
@@ -2305,6 +2329,7 @@ public class JobInProgress {
   		             tip.getNumberOfFailedMachines() >= numUniqueHosts) {
   		          // check if the tip has failed on all the nodes
   		          iter.remove();
+  		          assignedList.put(ttStatus.getTrackerName(), assignPart);
   		          return tip;
   		        } else if (removeFailedTip) { 
   		          // the case where we want to remove a failed tip from the host cache
@@ -3802,7 +3827,14 @@ public class JobInProgress {
 	public Map<Integer, Map<String, Long>> calculateData() {
 		Map<Integer, Map<String, Long>> result = new HashMap<Integer, Map<String,Long>>();
 //		Map<Integer, Integer> maxAndPartition = new HashMap<Integer, Integer>();
+
+		for (String assingedTracker : assignedList.keySet()) {
+			Integer assignedPart = assignedList.get(assingedTracker);
+			data.remove(assignedPart);
+		}
+
 		for (Integer part : data.keySet()) {
+			
 			long max = 0;
 
 			Map<String, Long> partitionResult = new TreeMap<String, Long>();
@@ -3862,9 +3894,13 @@ public class JobInProgress {
 	}
 	
 	public Map<String, Integer> planAssignList() {
-		if (assignList == null) {
+//		if (assignList == null) {
 			// 割り当てノードとタスクの組み合わせリスト
 			Map<String, Integer> planAssignList = new HashMap<String, Integer>();
+			// すでに割り当てたタスクは削除
+			for (String taskTracker : assignedList.keySet()) {
+				data.remove(assignedList.get(taskTracker));
+			}
 			// ソートした転送データ
 			Map<Integer, Map<String, Long>> sortCalculateData = sortCalculateData();
 			// ソートした転送量データのデバッグ
@@ -3882,17 +3918,18 @@ public class JobInProgress {
 			for (Entry<Integer, Long> sortMaxAndPartition : sortMaxAndPartitionList) {
 				Map<String, Long> partitionData = sortCalculateData.get(sortMaxAndPartition.getKey());
 				for (String taskTracker : partitionData.keySet()) {
-	    		if (!planAssignList.containsKey(taskTracker)) {
+	    		if (!assignedList.containsKey(taskTracker)) {
 	    			planAssignList.put(taskTracker, sortMaxAndPartition.getKey());
 	    			LOG.info(taskTracker + ", " + sortMaxAndPartition.getKey());
 	    			break;
 	    		}
 				}
 			}
-			assignList = planAssignList;			
-		} else {
-		}
-		return assignList;
+			return planAssignList;
+//			assignList = planAssignList;			
+//		} else {
+//		}
+//s		return assignList;
 	}
   
 }
