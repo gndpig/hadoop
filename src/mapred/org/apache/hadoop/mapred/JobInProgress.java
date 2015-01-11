@@ -3806,8 +3806,9 @@ public class JobInProgress {
     return level;
   }
   
-	public Map<Integer, Map<String, Long>> calculateData() {
+	public synchronized Map<Integer, Map<String, Long>> calculateData() {
 		Map<Integer, Map<String, Long>> result = new HashMap<Integer, Map<String,Long>>();
+		maxAndPartition = new HashMap<Integer, Long>();
 //		Map<Integer, Integer> maxAndPartition = new HashMap<Integer, Integer>();
 		for (Integer part : data.keySet()) {
 			if (assignedReduceTask.contains(part)) {
@@ -3839,7 +3840,7 @@ public class JobInProgress {
 		return result;
 	}
 	
-	public Map<Integer, Map<String, Long>> sortCalculateData() {
+	public synchronized Map<Integer, Map<String, Long>> sortCalculateData() {
 		Map<Integer, Map<String, Long>> calculateData = calculateData();
 		Map<Integer, Map<String, Long>> result = new HashMap<Integer, Map<String,Long>>();
 		
@@ -3863,7 +3864,7 @@ public class JobInProgress {
 		return result;		
 	}
 	
-	public List<Map.Entry<Integer, Long>> sortMaxAndPartitionList() {
+	public synchronized List<Map.Entry<Integer, Long>> sortMaxAndPartitionList() {
 		List<Map.Entry<Integer, Long>> entries = new ArrayList<Map.Entry<Integer,Long>>(maxAndPartition.entrySet());
 		Collections.sort(entries, new Comparator<Map.Entry<Integer, Long>>() {
 			@Override
@@ -3874,7 +3875,7 @@ public class JobInProgress {
 		return entries;
 	}
 	
-	public Map<String, Integer> planAssignList() {
+	public synchronized Map<String, Integer> planAssignList() {
 //		if (assignList == null) {
 			// 割り当てノードとタスクの組み合わせリスト
 			Map<String, Integer> planAssignList = new HashMap<String, Integer>();
@@ -3894,12 +3895,14 @@ public class JobInProgress {
 			LOG.info("create Plan Assign List");
 			for (Entry<Integer, Long> sortMaxAndPartition : sortMaxAndPartitionList) {
 				Map<String, Long> partitionData = sortCalculateData.get(sortMaxAndPartition.getKey());
-				for (String taskTracker : partitionData.keySet()) {
-	    		if (!planAssignList.containsKey(taskTracker)) {
-	    			planAssignList.put(taskTracker, sortMaxAndPartition.getKey());
-	    			LOG.info(taskTracker + ", " + sortMaxAndPartition.getKey());
-	    			break;
-	    		}
+				if (partitionData != null) {
+					for (String taskTracker : partitionData.keySet()) {
+		    		if (!planAssignList.containsKey(taskTracker)) {
+		    			planAssignList.put(taskTracker, sortMaxAndPartition.getKey());
+		    			LOG.info(taskTracker + ", " + sortMaxAndPartition.getKey());
+		    			break;
+		    		}
+					}					
 				}
 			}
 			return planAssignList;
