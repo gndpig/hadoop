@@ -2288,8 +2288,10 @@ public class JobInProgress {
       Collection<TaskInProgress> tips, TaskTrackerStatus ttStatus,
       int numUniqueHosts,
       boolean removeFailedTip) {
-//  	Map<String, Integer> planAssignList = planAssignList();
-  	Map<String, Integer> planAssignList = maxAssignList();
+  	// 提案手法
+  	Map<String, Integer> planAssignList = planAssignList();
+  	// 既存手法
+//  	Map<String, Integer> planAssignList = maxAssignList();
   	if (planAssignList != null) {
     	Integer assignPart = planAssignList.get(ttStatus.getTrackerName());
     	if (assignPart != null) {
