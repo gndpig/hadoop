@@ -1712,7 +1712,7 @@ public class JobInProgress {
     // Map タスク数が TaskTracker 数より少ない場合
     // パーティション毎のデータ量が分からない状態で Reduce タスクを割り当てるため
     if ((numMapTasks <= 8) && (finishedMapTasks + failedMapTIPs) < (numMapTasks)) {
-    	LOG.info((finishedMapTasks + failedMapTIPs) + ", " + numMapTasks);
+    	//LOG.info((finishedMapTasks + failedMapTIPs) + ", " + numMapTasks);
     	return null;
     }
 
@@ -2288,7 +2288,15 @@ public class JobInProgress {
       Collection<TaskInProgress> tips, TaskTrackerStatus ttStatus,
       int numUniqueHosts,
       boolean removeFailedTip) {
-
+  	// ノードが保持するデータ量の表示
+		LOG.info("trace Data");
+		for (Integer i : data.keySet()) {
+			LOG.info(i);
+			Map<String, Long> map = data.get(i);
+			for (String s: map.keySet()) {
+				LOG.info(s + ", " + map.get(s));
+			}
+		}
   	// 提案手法
   	Map<String, Integer> planAssignList = planAssignList();
   	// 既存手法
@@ -2316,15 +2324,6 @@ public class JobInProgress {
   		             tip.getNumberOfFailedMachines() >= numUniqueHosts) {
   		          // check if the tip has failed on all the nodes
   		          iter.remove();
-  		        	// ノードが保持するデータ量の表示
-  		      		LOG.info("trace Data");
-  		      		for (Integer i : data.keySet()) {
-  		      			LOG.info(i);
-  		      			Map<String, Long> map = data.get(i);
-  		      			for (String s: map.keySet()) {
-  		      				LOG.info(s + ", " + map.get(s));
-  		      			}
-  		      		}
   		          assignedReduceTask.add(assignPart);
   		          assignedTaskTracker.add(ttStatus.getTrackerName());
   		          return tip;
