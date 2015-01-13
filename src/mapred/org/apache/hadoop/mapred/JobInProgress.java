@@ -4216,6 +4216,7 @@ public class JobInProgress {
 				Map<Integer, Map<String, Long>> rackData = eachRackData.get(location);
 				Map<String, Long> taskData = rackData.get(i);
 				long count = 0;
+				
 				for(String taskTracker : taskData.keySet()) {
 		     	if (assignedTaskTracker.contains(taskTracker)) {
 		     		continue;
@@ -4225,8 +4226,9 @@ public class JobInProgress {
 				if (max < count) {
 					max = count;
 					selectRackData.put(i, taskData);
+					LOG.info("max = " + max + ", location = " + location);
 				}
-			}			
+			}
 		}
 		
 		LOG.info("trace eachRackData");
