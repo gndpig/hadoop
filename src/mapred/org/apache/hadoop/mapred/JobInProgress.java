@@ -1383,7 +1383,7 @@ public class JobInProgress {
         	long[] dataVolume = status.getDataVolume();
         	// 改訂版
         	for (int i = 0; i < conf.getNumReduceTasks(); i++) {
-        		Map<String, Long> partitionData = data.get(i);
+        		Map<String, Long> partitionData = rackData.get(i);
         		if (partitionData != null) {
         			Long taskTrackerPartitionData = partitionData.get(taskTrackerName);
         			if (taskTrackerPartitionData != null) {
@@ -4245,8 +4245,10 @@ public class JobInProgress {
 		for (Integer i : selectRackData.keySet()) {
 			LOG.info(i);
 			Map<String, Long> map = data.get(i);
-			for (String s: map.keySet()) {
-				LOG.info(s + ", " + map.get(s));
+			if (map != null) {
+				for (String s: map.keySet()) {
+					LOG.info(s + ", " + map.get(s));
+				}				
 			}
 		}
 
@@ -4284,7 +4286,6 @@ public class JobInProgress {
 				public int compare(Entry<String, Long> entry1, Entry<String, Long> entry2) {
 					return ((Long)entry2.getValue()).compareTo((Long)entry1.getValue());
 				}
-				
 			});
       for (Entry<String, Long> s : entries) {
       	partitionResult.put(s.getKey(), s.getValue());
@@ -4297,47 +4298,4 @@ public class JobInProgress {
 		}		
 		return result;		
 	}
-	
-
-//	public synchronized Map<String, Integer> minAssignList() {
-//		int reduces = this.conf.getNumReduceTasks();
-//		int nodes = 8;
-//		
-//    Permutation p = new Permutation(nodes, reduces);
-//    
-//		List<String[]> list = new ArrayList<String[]>();
-//
-//    
-//    for(int i = 0; i < p.getSize(); ++i){
-//    	list.add(p.toArray(i));
-//    }
-//
-//		
-//		
-//		long min = Integer.MAX_VALUE;
-//		
-//		String[] assign;
-//		for (String[] l : list) {
-//			long result = 0;
-//			for (Integer part : data.keySet()) {
-//				result += data.get(part).get(l[part]);
-//			}
-//			if (min > result) {
-//				assign = l;
-//			}
-//		}
-//		
-//		
-//		
-//		
-//		Map<String, Integer> minAssignList = new HashMap<String, Integer>();
-//		// データ転送量の計算
-//		Map<Integer, Map<String, Long>> sortCalculateData = sortCalculateData();
-//		for (Integer part : sortCalculateData.keySet()) {
-//			for(String taskTracker : sortCalculateData.get(part).keySet()) {
-//				
-//			}
-//		}
-//		return minAssignList;
-//	}
 }
