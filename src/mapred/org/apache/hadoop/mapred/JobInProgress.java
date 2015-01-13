@@ -4226,7 +4226,6 @@ public class JobInProgress {
 				if (max < count) {
 					max = count;
 					selectRackData.put(i, taskData);
-					LOG.info("max = " + max + ", location = " + location);
 				}
 			}
 		}
@@ -4246,7 +4245,7 @@ public class JobInProgress {
 		LOG.info("trace selectRackData");
 		for (Integer i : selectRackData.keySet()) {
 			LOG.info(i);
-			Map<String, Long> map = data.get(i);
+			Map<String, Long> map = selectRackData.get(i);
 			if (map != null) {
 				for (String s: map.keySet()) {
 					LOG.info(s + ", " + map.get(s));
@@ -4257,6 +4256,17 @@ public class JobInProgress {
 		
 		// パーティション毎のデータ量を大きい順に並び替え
 		Map<Integer, Map<String, Long>> sortMaxRackData = sortMaxRackData(selectRackData);
+		
+		LOG.info("trace sortMaxRackData");
+		for (Integer i : sortMaxRackData.keySet()) {
+			LOG.info(i);
+			Map<String, Long> map = sortMaxRackData.get(i);
+			if (map != null) {
+				for (String s: map.keySet()) {
+					LOG.info(s + ", " + map.get(s));
+				}				
+			}
+		}
 		
 		// パーティション毎のデータ量を大きい順でソートしたタスクリスト
 		List<Map.Entry<Integer, Long>> sortMaxPartitionList = sortMaxPartitionList();
@@ -4278,9 +4288,9 @@ public class JobInProgress {
 	public synchronized Map<Integer, Map<String, Long>> sortMaxRackData(Map<Integer, Map<String, Long>> d) {
 		Map<Integer, Map<String, Long>> result = new TreeMap<Integer, Map<String,Long>>();
 		maxPartition = new TreeMap<Integer, Long>();
-		for (Integer part : data.keySet()) {
+		for (Integer part : d.keySet()) {
 			long max = 0;
-			Map<String, Long> partitionData = data.get(part);
+			Map<String, Long> partitionData = d.get(part);
 			Map<String, Long> partitionResult = new LinkedHashMap<String, Long>();
 			List<Map.Entry<String, Long>> entries = new ArrayList<Map.Entry<String,Long>>(partitionData.entrySet());
 			Collections.sort(entries, new Comparator<Map.Entry<String, Long>>() {
