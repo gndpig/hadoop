@@ -176,6 +176,8 @@ public class JobInProgress {
   private List<String> assignedTaskTracker = new ArrayList<String>();
   // タスクごとの一番大きいパーティション
   private Map<Integer, Long> maxPartition;
+  
+  private Map<String, Map<Integer, Map<String, Long>>> eachRackData = new HashMap<String, Map<Integer,Map<String,Long>>>();
 
   // keep failedMaps, nonRunningReduces ordered by failure count to bias
   // scheduling toward failing tasks
@@ -1187,7 +1189,7 @@ public class JobInProgress {
           			partitionData.put(taskTrackerName, dataVolume[i]);        				        				
         			}
         		} else {
-        			partitionData = new HashMap<String, Long>();
+        			partitionData = new TreeMap<String, Long>();
         			partitionData.put(taskTrackerName, dataVolume[i]);
         		}
         		data.put(i, partitionData);
@@ -1291,6 +1293,211 @@ public class JobInProgress {
     }
   }
 
+  ////////////////////////////////////////////////////
+  // Status update methods
+  ////////////////////////////////////////////////////
+
+  /**
+   * Assuming {@link JobTracker} is locked on entry.
+   */
+	public synchronized void updateTaskStatus(TaskInProgress tip, 
+                                            TaskStatus status,
+                                            String location) {
+
+    double oldProgress = tip.getProgress();   // save old progress
+    boolean wasRunning = tip.isRunning();
+    boolean wasComplete = tip.isComplete();
+    boolean wasPending = tip.isOnlyCommitPending();
+    TaskAttemptID taskid = status.getTaskID();
+    boolean wasAttemptRunning = tip.isAttemptRunning(taskid);
+
+    // If the TIP is already completed and the task reports as SUCCEEDED then 
+    // mark the task as KILLED.
+    // In case of task with no promotion the task tracker will mark the task 
+    // as SUCCEEDED.
+    // User has requested to kill the task, but TT reported SUCCEEDED, 
+    // mark the task KILLED.
+    if ((wasComplete || tip.wasKilled(taskid)) && 
+        (status.getRunState() == TaskStatus.State.SUCCEEDED)) {
+      status.setRunState(TaskStatus.State.KILLED);
+    }
+    
+    // If the job is complete and a task has just reported its 
+    // state as FAILED_UNCLEAN/KILLED_UNCLEAN, 
+    // make the task's state FAILED/KILLED without launching cleanup attempt.
+    // Note that if task is already a cleanup attempt, 
+    // we don't change the state to make sure the task gets a killTaskAction
+    if ((this.isComplete() || jobFailed || jobKilled) && 
+        !tip.isCleanupAttempt(taskid)) {
+      if (status.getRunState() == TaskStatus.State.FAILED_UNCLEAN) {
+        status.setRunState(TaskStatus.State.FAILED);
+      } else if (status.getRunState() == TaskStatus.State.KILLED_UNCLEAN) {
+        status.setRunState(TaskStatus.State.KILLED);
+      }
+    }
+    
+    boolean change = tip.updateStatus(status);
+    if (change) {
+      TaskStatus.State state = status.getRunState();
+      // get the TaskTrackerStatus where the task ran 
+      TaskTracker taskTracker = 
+        this.jobtracker.getTaskTracker(tip.machineWhereTaskRan(taskid));
+      TaskTrackerStatus ttStatus = 
+        (taskTracker == null) ? null : taskTracker.getStatus();
+      String httpTaskLogLocation = null; 
+
+      if (null != ttStatus){
+        String host;
+        if (NetUtils.getStaticResolution(ttStatus.getHost()) != null) {
+          host = NetUtils.getStaticResolution(ttStatus.getHost());
+        } else {
+          host = ttStatus.getHost();
+        }
+        httpTaskLogLocation = "http://" + host + ":" + ttStatus.getHttpPort(); 
+           //+ "/tasklog?plaintext=true&attemptid=" + status.getTaskID();
+      }
+
+      TaskCompletionEvent taskEvent = null;
+      if (state == TaskStatus.State.SUCCEEDED) {
+        taskEvent = new TaskCompletionEvent(
+                                            taskCompletionEventTracker, 
+                                            taskid,
+                                            tip.idWithinJob(),
+                                            status.getIsMap() &&
+                                            !tip.isJobCleanupTask() &&
+                                            !tip.isJobSetupTask(),
+                                            TaskCompletionEvent.Status.SUCCEEDED,
+                                            httpTaskLogLocation 
+                                           );
+        taskEvent.setTaskRunTime((int)(status.getFinishTime() 
+                                       - status.getStartTime()));
+        tip.setSuccessEventNumber(taskCompletionEventTracker);
+        // taskTracker 毎の dataVolumes の更新
+        if (status.getIsMap()) {
+          Map<Integer, Map<String, Long>> rackData = eachRackData.get(location);
+          if (rackData == null) {
+          	rackData = new TreeMap<Integer, Map<String,Long>>();
+          }
+
+        	String taskTrackerName = status.getTaskTracker();
+        	long[] dataVolume = status.getDataVolume();
+        	// 改訂版
+        	for (int i = 0; i < conf.getNumReduceTasks(); i++) {
+        		Map<String, Long> partitionData = data.get(i);
+        		if (partitionData != null) {
+        			Long taskTrackerPartitionData = partitionData.get(taskTrackerName);
+        			if (taskTrackerPartitionData != null) {
+          			partitionData.put(taskTrackerName, taskTrackerPartitionData + dataVolume[i]);        				
+        			} else {
+          			partitionData.put(taskTrackerName, dataVolume[i]);        				        				
+        			}
+        		} else {
+        			partitionData = new HashMap<String, Long>();
+        			partitionData.put(taskTrackerName, dataVolume[i]);
+        		}
+        		rackData.put(i, partitionData);
+        	}
+        	eachRackData.put(location, rackData);
+        }
+      } else if (state == TaskStatus.State.COMMIT_PENDING) {
+        // If it is the first attempt reporting COMMIT_PENDING
+        // ask the task to commit.
+        if (!wasComplete && !wasPending) {
+          tip.doCommit(taskid);
+        }
+        return;
+      } else if (state == TaskStatus.State.FAILED_UNCLEAN ||
+                 state == TaskStatus.State.KILLED_UNCLEAN) {
+        tip.incompleteSubTask(taskid, this.status);
+        // add this task, to be rescheduled as cleanup attempt
+        if (tip.isMapTask()) {
+          mapCleanupTasks.add(taskid);
+        } else {
+          reduceCleanupTasks.add(taskid);
+        }
+        // Remove the task entry from jobtracker
+        jobtracker.removeTaskEntry(taskid);
+      }
+      //For a failed task update the JT datastructures. 
+      else if (state == TaskStatus.State.FAILED ||
+               state == TaskStatus.State.KILLED) {
+        // Get the event number for the (possibly) previously successful
+        // task. If there exists one, then set that status to OBSOLETE 
+        int eventNumber;
+        if ((eventNumber = tip.getSuccessEventNumber()) != -1) {
+          TaskCompletionEvent t = 
+            this.taskCompletionEvents.get(eventNumber);
+          if (t.getTaskAttemptId().equals(taskid))
+            t.setTaskStatus(TaskCompletionEvent.Status.OBSOLETE);
+        }
+        
+        // Tell the job to fail the relevant task
+        failedTask(tip, taskid, status, taskTracker,
+                   wasRunning, wasComplete, wasAttemptRunning);
+
+        // Did the task failure lead to tip failure?
+        TaskCompletionEvent.Status taskCompletionStatus = 
+          (state == TaskStatus.State.FAILED ) ?
+              TaskCompletionEvent.Status.FAILED :
+              TaskCompletionEvent.Status.KILLED;
+        if (tip.isFailed()) {
+          taskCompletionStatus = TaskCompletionEvent.Status.TIPFAILED;
+        }
+        taskEvent = new TaskCompletionEvent(taskCompletionEventTracker, 
+                                            taskid,
+                                            tip.idWithinJob(),
+                                            status.getIsMap() &&
+                                            !tip.isJobCleanupTask() &&
+                                            !tip.isJobSetupTask(),
+                                            taskCompletionStatus, 
+                                            httpTaskLogLocation
+                                           );
+      }          
+
+      // Add the 'complete' task i.e. successful/failed
+      // It _is_ safe to add the TaskCompletionEvent.Status.SUCCEEDED
+      // *before* calling TIP.completedTask since:
+      // a. One and only one task of a TIP is declared as a SUCCESS, the
+      //    other (speculative tasks) are marked KILLED by the TaskCommitThread
+      // b. TIP.completedTask *does not* throw _any_ exception at all.
+      if (taskEvent != null) {
+        this.taskCompletionEvents.add(taskEvent);
+        taskCompletionEventTracker++;
+        JobTrackerStatistics.TaskTrackerStat ttStat = jobtracker.
+           getStatistics().getTaskTrackerStat(tip.machineWhereTaskRan(taskid));
+        if(ttStat != null) { // ttStat can be null in case of lost tracker
+          ttStat.incrTotalTasks();
+        }
+        if (state == TaskStatus.State.SUCCEEDED) {
+          completedTask(tip, status);
+          if(ttStat != null) {
+            ttStat.incrSucceededTasks();
+          }
+        }
+      }
+    }
+        
+    //
+    // Update JobInProgress status
+    //
+    if(LOG.isDebugEnabled()) {
+      LOG.debug("Taking progress for " + tip.getTIPId() + " from " + 
+                 oldProgress + " to " + tip.getProgress());
+    }
+    
+    if (!tip.isJobCleanupTask() && !tip.isJobSetupTask()) {
+      double progressDelta = tip.getProgress() - oldProgress;
+      if (tip.isMapTask()) {
+          this.status.setMapProgress((float) (this.status.mapProgress() +
+                                              progressDelta / maps.length));
+      } else {
+        this.status.setReduceProgress((float) (this.status.reduceProgress() + 
+                                           (progressDelta / reduces.length)));
+      }
+    }
+  }
+	
+	
   String getHistoryFile() {
     return historyFile;
   }
@@ -2289,16 +2496,19 @@ public class JobInProgress {
       int numUniqueHosts,
       boolean removeFailedTip) {
   	// ノードが保持するデータ量の表示
-		LOG.info("trace Data");
-		for (Integer i : data.keySet()) {
-			LOG.info(i);
-			Map<String, Long> map = data.get(i);
-			for (String s: map.keySet()) {
-				LOG.info(s + ", " + map.get(s));
-			}
-		}
-  	// 提案手法
-  	Map<String, Integer> planAssignList = planAssignList();
+//		LOG.info("trace Data");
+//		for (Integer i : data.keySet()) {
+//			LOG.info(i);
+//			Map<String, Long> map = data.get(i);
+//			for (String s: map.keySet()) {
+//				LOG.info(s + ", " + map.get(s));
+//			}
+//		}
+  	// 提案手法 (Rackを考慮)
+  	Map<String, Integer> planAssignList = maxRackAssignList();
+
+//  	// 提案手法 (Rackを考慮しない)
+//  	Map<String, Integer> planAssignList = planAssignList();
   	// 既存手法
 //  	Map<String, Integer> planAssignList = maxAssignList();
   	if (planAssignList != null) {
@@ -3988,6 +4198,106 @@ public class JobInProgress {
 		});		
 		return entries;
 	}
+	
+	// 既存手法
+	public synchronized Map<String, Integer> maxRackAssignList() {
+		// 結果
+		Map<String, Integer> maxRackAssignList = new HashMap<String, Integer>();
+		
+		Map<Integer, Map<String, Long>> selectRackData = new TreeMap<Integer, Map<String,Long>>();
+		
+		// Rack 毎にパーティション毎のデータ量の合計を比較する
+		for (int i = 0; i < conf.getNumReduceTasks(); i++) {
+			if (assignedReduceTask.contains(i)) {
+				continue;
+			}
+			long max = 0;
+			for (String location : eachRackData.keySet()) {
+				Map<Integer, Map<String, Long>> rackData = eachRackData.get(location);
+				Map<String, Long> taskData = rackData.get(i);
+				long count = 0;
+				for(String taskTracker : taskData.keySet()) {
+		     	if (assignedTaskTracker.contains(taskTracker)) {
+		     		continue;
+		     	}
+					count += taskData.get(taskTracker);
+				}
+				if (max < count) {
+					max = count;
+					selectRackData.put(i, taskData);
+				}
+			}			
+		}
+		
+		LOG.info("trace eachRackData");
+		for (String location : eachRackData.keySet()) {
+			LOG.info("trace location = " + location);
+			Map<Integer, Map<String, Long>> rackData = eachRackData.get(location);
+			for (Integer part : rackData.keySet()) {
+				Map<String, Long> taskData = rackData.get(part);
+				for (String taskTracker : taskData.keySet()) {
+					LOG.info(taskTracker + ", " + taskData.get(taskTracker));
+				}
+			}
+		}
+				
+		LOG.info("trace selectRackData");
+		for (Integer i : selectRackData.keySet()) {
+			LOG.info(i);
+			Map<String, Long> map = data.get(i);
+			for (String s: map.keySet()) {
+				LOG.info(s + ", " + map.get(s));
+			}
+		}
+
+		
+		// パーティション毎のデータ量を大きい順に並び替え
+		Map<Integer, Map<String, Long>> sortMaxRackData = sortMaxRackData(selectRackData);
+		
+		// パーティション毎のデータ量を大きい順でソートしたタスクリスト
+		List<Map.Entry<Integer, Long>> sortMaxPartitionList = sortMaxPartitionList();
+		for (Entry<Integer, Long> sortMaxAndPartition : sortMaxPartitionList) {
+			Map<String, Long> partitionData = sortMaxRackData.get(sortMaxAndPartition.getKey());
+			if (partitionData != null) {
+				for (String taskTracker : partitionData.keySet()) {
+	    		if (!maxRackAssignList.containsKey(taskTracker)) {
+	    			maxRackAssignList.put(taskTracker, sortMaxAndPartition.getKey());
+	    			LOG.info(taskTracker + ", " + sortMaxAndPartition.getKey());
+	    			break;
+	    		}
+				}					
+			}
+		}
+		return maxRackAssignList;
+	}
+	
+	public synchronized Map<Integer, Map<String, Long>> sortMaxRackData(Map<Integer, Map<String, Long>> d) {
+		Map<Integer, Map<String, Long>> result = new TreeMap<Integer, Map<String,Long>>();
+		maxPartition = new TreeMap<Integer, Long>();
+		for (Integer part : data.keySet()) {
+			long max = 0;
+			Map<String, Long> partitionData = data.get(part);
+			Map<String, Long> partitionResult = new LinkedHashMap<String, Long>();
+			List<Map.Entry<String, Long>> entries = new ArrayList<Map.Entry<String,Long>>(partitionData.entrySet());
+			Collections.sort(entries, new Comparator<Map.Entry<String, Long>>() {
+				@Override
+				public int compare(Entry<String, Long> entry1, Entry<String, Long> entry2) {
+					return ((Long)entry2.getValue()).compareTo((Long)entry1.getValue());
+				}
+				
+			});
+      for (Entry<String, Long> s : entries) {
+      	partitionResult.put(s.getKey(), s.getValue());
+      	if (max < s.getValue()) {
+      		max = s.getValue();
+      	}
+      }
+      result.put(part, partitionResult);
+      maxPartition.put(part, max);
+		}		
+		return result;		
+	}
+	
 
 //	public synchronized Map<String, Integer> minAssignList() {
 //		int reduces = this.conf.getNumReduceTasks();

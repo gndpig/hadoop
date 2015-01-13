@@ -4471,8 +4471,14 @@ public class JobTracker implements MRConstants, InterTrackerProtocol,
         // or TaskInProgress can modify this object and
         // the changes should not get reflected in TaskTrackerStatus.
         // An old TaskTrackerStatus is used later in countMapTasks, etc.
+        // ホストネーム
+        String host = status.host;
         // タスクのステータスの変更
-        job.updateTaskStatus(tip, (TaskStatus)report.clone());
+        // 提案手法 (デフォルト)
+        //job.updateTaskStatus(tip, (TaskStatus)report.clone());
+        // 既存手法
+        Node node = hostnameToNodeMap.get(host);
+        job.updateTaskStatus(tip, (TaskStatus)report.clone(), node.getNetworkLocation());
         JobStatus newStatus = (JobStatus)job.getStatus().clone();
         
         // Update the listeners if an incomplete job completes
