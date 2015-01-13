@@ -4296,6 +4296,9 @@ public class JobInProgress {
 		maxPartition = new TreeMap<Integer, Long>();
 		for (Integer part : d.keySet()) {
 			long max = 0;
+			if (assignedReduceTask.contains(part)) {
+				continue;
+			}
 			Map<String, Long> partitionData = d.get(part);
 			Map<String, Long> partitionResult = new LinkedHashMap<String, Long>();
 			List<Map.Entry<String, Long>> entries = new ArrayList<Map.Entry<String,Long>>(partitionData.entrySet());
@@ -4306,6 +4309,9 @@ public class JobInProgress {
 				}
 			});
       for (Entry<String, Long> s : entries) {
+      	if (assignedTaskTracker.contains(s.getKey())) {
+      		continue;
+      	}
       	partitionResult.put(s.getKey(), s.getValue());
       	if (max < s.getValue()) {
       		max = s.getValue();
