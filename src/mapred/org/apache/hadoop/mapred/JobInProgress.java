@@ -2288,6 +2288,7 @@ public class JobInProgress {
       Collection<TaskInProgress> tips, TaskTrackerStatus ttStatus,
       int numUniqueHosts,
       boolean removeFailedTip) {
+
   	// 提案手法
   	Map<String, Integer> planAssignList = planAssignList();
   	// 既存手法
@@ -2315,6 +2316,15 @@ public class JobInProgress {
   		             tip.getNumberOfFailedMachines() >= numUniqueHosts) {
   		          // check if the tip has failed on all the nodes
   		          iter.remove();
+  		        	// ノードが保持するデータ量の表示
+  		      		LOG.info("trace Data");
+  		      		for (Integer i : data.keySet()) {
+  		      			LOG.info(i);
+  		      			Map<String, Long> map = data.get(i);
+  		      			for (String s: map.keySet()) {
+  		      				LOG.info(s + ", " + map.get(s));
+  		      			}
+  		      		}
   		          assignedReduceTask.add(assignPart);
   		          assignedTaskTracker.add(ttStatus.getTrackerName());
   		          return tip;
@@ -3887,14 +3897,14 @@ public class JobInProgress {
 		// ソートした転送データ
 		Map<Integer, Map<String, Long>> sortCalculateData = sortCalculateData();
 		// ソートした転送量データのデバッグ
-		LOG.info("trace sortCalculateData");
-		for (Integer i : sortCalculateData.keySet()) {
-			LOG.info(i);
-			Map<String, Long> map = sortCalculateData.get(i);
-			for (String s: map.keySet()) {
-				LOG.info(s + ", " + map.get(s));
-			}
-		}
+//		LOG.info("trace sortCalculateData");
+//		for (Integer i : sortCalculateData.keySet()) {
+//			LOG.info(i);
+//			Map<String, Long> map = sortCalculateData.get(i);
+//			for (String s: map.keySet()) {
+//				LOG.info(s + ", " + map.get(s));
+//			}
+//		}
 		// データ転送量が多い順でソートしたタスクリスト
 		List<Map.Entry<Integer, Long>> sortMaxAndPartitionList = sortMaxAndPartitionList();
 		LOG.info("create Plan Assign List");
