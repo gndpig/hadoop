@@ -2506,6 +2506,12 @@ public class JobInProgress {
 //		}
   	// 提案手法 (Rackを考慮)
   	Map<String, Integer> planAssignList = maxRackAssignList();
+  	
+  	LOG.info("trace maxRackAssignList");
+  	for (String taskTracker : planAssignList.keySet()) {
+  		LOG.info(taskTracker + ", " + planAssignList.get(taskTracker)); 
+  	}
+  	
 
 //  	// 提案手法 (Rackを考慮しない)
 //  	Map<String, Integer> planAssignList = planAssignList();
@@ -4242,31 +4248,31 @@ public class JobInProgress {
 			}
 		}
 				
-		LOG.info("trace selectRackData");
-		for (Integer i : selectRackData.keySet()) {
-			LOG.info(i);
-			Map<String, Long> map = selectRackData.get(i);
-			if (map != null) {
-				for (String s: map.keySet()) {
-					LOG.info(s + ", " + map.get(s));
-				}				
-			}
-		}
+//		LOG.info("trace selectRackData");
+//		for (Integer i : selectRackData.keySet()) {
+//			LOG.info(i);
+//			Map<String, Long> map = selectRackData.get(i);
+//			if (map != null) {
+//				for (String s: map.keySet()) {
+//					LOG.info(s + ", " + map.get(s));
+//				}				
+//			}
+//		}
 
 		
 		// パーティション毎のデータ量を大きい順に並び替え
 		Map<Integer, Map<String, Long>> sortMaxRackData = sortMaxRackData(selectRackData);
 		
-		LOG.info("trace sortMaxRackData");
-		for (Integer i : sortMaxRackData.keySet()) {
-			LOG.info(i);
-			Map<String, Long> map = sortMaxRackData.get(i);
-			if (map != null) {
-				for (String s: map.keySet()) {
-					LOG.info(s + ", " + map.get(s));
-				}				
-			}
-		}
+//		LOG.info("trace sortMaxRackData");
+//		for (Integer i : sortMaxRackData.keySet()) {
+//			LOG.info(i);
+//			Map<String, Long> map = sortMaxRackData.get(i);
+//			if (map != null) {
+//				for (String s: map.keySet()) {
+//					LOG.info(s + ", " + map.get(s));
+//				}				
+//			}
+//		}
 		
 		// パーティション毎のデータ量を大きい順でソートしたタスクリスト
 		List<Map.Entry<Integer, Long>> sortMaxPartitionList = sortMaxPartitionList();
