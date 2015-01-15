@@ -162,11 +162,22 @@ public class RandomWriter extends Configured implements Tool {
     private BytesWritable randomKey = new BytesWritable();
     private BytesWritable randomValue = new BytesWritable();
     
+    // 固定Key
+    byte FIXED_KEY = (byte) 100;
+    
     private void randomizeBytes(byte[] data, int offset, int length) {
       for(int i=offset + length - 1; i >= offset; --i) {
         data[i] = (byte) random.nextInt(256);
       }
     }
+    
+    private void randomizeBytesNew(byte[] data, int offset, int length) {
+      for(int i=offset + length - 2; i >= offset; --i) {
+        data[i] = (byte) (random.nextInt(256) % 8);
+      }
+      data[offset+length-1] = FIXED_KEY;
+    }
+    
     
     /**
      * Given an output filename, write a bunch of random records to it.
@@ -179,8 +190,10 @@ public class RandomWriter extends Configured implements Tool {
       while (numBytesToWrite > 0) {
         int keyLength = minKeySize + 
           (keySizeRange != 0 ? random.nextInt(keySizeRange) : 0);
+        // 固定 Key を追加するため、サイズを増やす
+        keyLength += 1;
         randomKey.setSize(keyLength);
-        randomizeBytes(randomKey.getBytes(), 0, randomKey.getLength());
+        randomizeBytesNew(randomKey.getBytes(), 0, randomKey.getLength());
         int valueLength = minValueSize +
           (valueSizeRange != 0 ? random.nextInt(valueSizeRange) : 0);
         randomValue.setSize(valueLength);

@@ -1392,7 +1392,7 @@ public class JobInProgress {
           			partitionData.put(taskTrackerName, dataVolume[i]);        				        				
         			}
         		} else {
-        			partitionData = new HashMap<String, Long>();
+        			partitionData = new TreeMap<String, Long>();
         			partitionData.put(taskTrackerName, dataVolume[i]);
         		}
         		rackData.put(i, partitionData);
@@ -2504,13 +2504,37 @@ public class JobInProgress {
 //				LOG.info(s + ", " + map.get(s));
 //			}
 //		}
+  	// Map　タスクが終了した場合
+  	if ((finishedMapTasks + failedMapTIPs) >= (numMapTasks)) {
+    	// ノードが保持するデータ量の表示
+			LOG.info("trace Data");
+			for (Integer i : data.keySet()) {
+				LOG.info(i);
+				Map<String, Long> map = data.get(i);
+				for (String s: map.keySet()) {
+					LOG.info(s + ", " + map.get(s));
+				}
+			} 
+			
+			LOG.info("trace eachRackData");
+			for (String location : eachRackData.keySet()) {
+				LOG.info("trace location = " + location);
+				Map<Integer, Map<String, Long>> rackData = eachRackData.get(location);
+				for (Integer part : rackData.keySet()) {
+					Map<String, Long> taskData = rackData.get(part);
+					for (String taskTracker : taskData.keySet()) {
+						LOG.info(taskTracker + ", " + taskData.get(taskTracker));
+					}
+				}
+			}
+  	}
   	// 提案手法 (Rackを考慮)
   	Map<String, Integer> planAssignList = maxRackAssignList();
   	
-  	LOG.info("trace maxRackAssignList");
-  	for (String taskTracker : planAssignList.keySet()) {
-  		LOG.info(taskTracker + ", " + planAssignList.get(taskTracker)); 
-  	}
+//  	LOG.info("trace maxRackAssignList");
+//  	for (String taskTracker : planAssignList.keySet()) {
+//  		LOG.info(taskTracker + ", " + planAssignList.get(taskTracker)); 
+//  	}
   	
 
 //  	// 提案手法 (Rackを考慮しない)
@@ -2927,6 +2951,7 @@ public class JobInProgress {
     // reducers don't have a cache and so pass -1 to explicitly call that out
    //tip = findTaskFromList(nonRunningReduces, tts, numUniqueHosts, false);
    tip = findReduceTaskFromList(nonRunningReduces, tts, numUniqueHosts, false);
+   
     if (tip != null) {
       scheduleReduce(tip);
       return tip.getIdWithinJob();
@@ -4236,17 +4261,17 @@ public class JobInProgress {
 			}
 		}
 		
-		LOG.info("trace eachRackData");
-		for (String location : eachRackData.keySet()) {
-			LOG.info("trace location = " + location);
-			Map<Integer, Map<String, Long>> rackData = eachRackData.get(location);
-			for (Integer part : rackData.keySet()) {
-				Map<String, Long> taskData = rackData.get(part);
-				for (String taskTracker : taskData.keySet()) {
-					LOG.info(taskTracker + ", " + taskData.get(taskTracker));
-				}
-			}
-		}
+//		LOG.info("trace eachRackData");
+//		for (String location : eachRackData.keySet()) {
+//			LOG.info("trace location = " + location);
+//			Map<Integer, Map<String, Long>> rackData = eachRackData.get(location);
+//			for (Integer part : rackData.keySet()) {
+//				Map<String, Long> taskData = rackData.get(part);
+//				for (String taskTracker : taskData.keySet()) {
+//					LOG.info(taskTracker + ", " + taskData.get(taskTracker));
+//				}
+//			}
+//		}
 				
 //		LOG.info("trace selectRackData");
 //		for (Integer i : selectRackData.keySet()) {
