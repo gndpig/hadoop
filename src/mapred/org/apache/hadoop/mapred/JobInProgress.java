@@ -178,6 +178,8 @@ public class JobInProgress {
   private Map<Integer, Long> maxPartition;
   
   private Map<String, Map<Integer, Map<String, Long>>> eachRackData = new HashMap<String, Map<Integer,Map<String,Long>>>();
+  
+  private boolean first = true;
 
   // keep failedMaps, nonRunningReduces ordered by failure count to bias
   // scheduling toward failing tasks
@@ -2506,27 +2508,31 @@ public class JobInProgress {
 //		}
   	// Map　タスクが終了した場合
   	if ((finishedMapTasks + failedMapTIPs) >= (numMapTasks)) {
-    	// ノードが保持するデータ量の表示
-			LOG.info("trace Data");
-			for (Integer i : data.keySet()) {
-				LOG.info(i);
-				Map<String, Long> map = data.get(i);
-				for (String s: map.keySet()) {
-					LOG.info(s + ", " + map.get(s));
-				}
-			} 
-			
-			LOG.info("trace eachRackData");
-			for (String location : eachRackData.keySet()) {
-				LOG.info("trace location = " + location);
-				Map<Integer, Map<String, Long>> rackData = eachRackData.get(location);
-				for (Integer part : rackData.keySet()) {
-					Map<String, Long> taskData = rackData.get(part);
-					for (String taskTracker : taskData.keySet()) {
-						LOG.info(taskTracker + ", " + taskData.get(taskTracker));
-					}
-				}
-			}
+  		if (first) {
+      	// ノードが保持するデータ量の表示
+  			LOG.info("trace Data");
+  			for (Integer i : data.keySet()) {
+  				LOG.info(i);
+  				Map<String, Long> map = data.get(i);
+  				for (String s: map.keySet()) {
+  					LOG.info(s + ", " + map.get(s));
+  				}
+  			} 
+  			
+  			LOG.info("trace eachRackData");
+  			for (String location : eachRackData.keySet()) {
+  				LOG.info("trace location = " + location);
+  				Map<Integer, Map<String, Long>> rackData = eachRackData.get(location);
+  				for (Integer part : rackData.keySet()) {
+  					Map<String, Long> taskData = rackData.get(part);
+  					for (String taskTracker : taskData.keySet()) {
+  						LOG.info(taskTracker + ", " + taskData.get(taskTracker));
+  					}
+  				}
+  			}
+  			
+  			first = false;
+  		} 
   	}
   	// 提案手法 (Rackを考慮)
   	Map<String, Integer> planAssignList = maxRackAssignList();

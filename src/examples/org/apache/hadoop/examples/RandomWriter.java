@@ -172,10 +172,11 @@ public class RandomWriter extends Configured implements Tool {
     }
     
     private void randomizeBytesNew(byte[] data, int offset, int length) {
-      for(int i=offset + length - 2; i >= offset; --i) {
-        data[i] = (byte) (random.nextInt(256) % 8);
+    	byte r = (byte) (random.nextInt(256) % 8);
+      for(int i=offset + length - 1; i >= offset; --i) {
+//        data[i] = (byte) random.nextInt(256);
+        data[i] = r;
       }
-      data[offset+length-1] = FIXED_KEY;
     }
     
     
@@ -188,10 +189,11 @@ public class RandomWriter extends Configured implements Tool {
                     Reporter reporter) throws IOException {
       int itemCount = 0;
       while (numBytesToWrite > 0) {
-        int keyLength = minKeySize + 
-          (keySizeRange != 0 ? random.nextInt(keySizeRange) : 0);
+        //int keyLength = minKeySize + 
+          //(keySizeRange != 0 ? random.nextInt(keySizeRange) : 0);
         // 固定 Key を追加するため、サイズを増やす
-        keyLength += 1;
+//        keyLength += 1;
+      	int keyLength = minKeySize;
         randomKey.setSize(keyLength);
         randomizeBytesNew(randomKey.getBytes(), 0, randomKey.getLength());
         int valueLength = minValueSize +
