@@ -1385,6 +1385,21 @@ public class JobInProgress {
         	long[] dataVolume = status.getDataVolume();
         	// 改訂版
         	for (int i = 0; i < conf.getNumReduceTasks(); i++) {
+        		Map<String, Long> partitionData_ = data.get(i);
+        		if (partitionData_ != null) {
+        			Long taskTrackerPartitionData = partitionData_.get(taskTrackerName);
+        			if (taskTrackerPartitionData != null) {
+          			partitionData_.put(taskTrackerName, taskTrackerPartitionData + dataVolume[i]);        				
+        			} else {
+          			partitionData_.put(taskTrackerName, dataVolume[i]);        				        				
+        			}
+        		} else {
+        			partitionData_ = new TreeMap<String, Long>();
+        			partitionData_.put(taskTrackerName, dataVolume[i]);
+        		}
+        		data.put(i, partitionData_);
+
+        		
         		Map<String, Long> partitionData = rackData.get(i);
         		if (partitionData != null) {
         			Long taskTrackerPartitionData = partitionData.get(taskTrackerName);
@@ -2509,6 +2524,7 @@ public class JobInProgress {
   	// Map　タスクが終了した場合
   	if ((finishedMapTasks + failedMapTIPs) >= (numMapTasks)) {
   		if (first) {
+  			LOG.info("Trace");
       	// ノードが保持するデータ量の表示
   			LOG.info("Data");
   			for (Integer i : data.keySet()) {
@@ -2534,6 +2550,21 @@ public class JobInProgress {
   			LOG.info("assigned list");
   			for (int i = 0; i < conf.getNumReduceTasks(); i++) {
   				LOG.info(assignedReduceTask.get(i) + ", " + assignedTaskTracker.get(i));
+  			}
+  			
+  			LOG.info("Transferred data");
+  			for (int i = 0; i < conf.getNumReduceTasks(); i++) {
+  				Integer assignedTask = assignedReduceTask.get(i);
+  				String assignedNode = assignedTaskTracker.get(i);
+  				// データ転送量
+  				long volume = 0;
+  				Map<String, Long> taskData = data.get(assignedTask);
+  				for (String nodeName : taskData.keySet()) {
+  					if (nodeName != assignedNode) {
+  						volume += taskData.get(nodeName);
+  					}
+  				}
+  				LOG.info(assignedTask + ", " + volume);
   			}
   			
   			first = false;
@@ -4325,7 +4356,7 @@ public class JobInProgress {
 				for (String taskTracker : partitionData.keySet()) {
 	    		if (!maxRackAssignList.containsKey(taskTracker)) {
 	    			maxRackAssignList.put(taskTracker, sortMaxAndPartition.getKey());
-	    			LOG.info(taskTracker + ", " + sortMaxAndPartition.getKey());
+	    			//LOG.info(taskTracker + ", " + sortMaxAndPartition.getKey());
 	    			break;
 	    		}
 				}					
