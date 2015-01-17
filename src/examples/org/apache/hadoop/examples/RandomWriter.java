@@ -191,7 +191,7 @@ public class RandomWriter extends Configured implements Tool {
         int keyLength = minKeySize + 
           (keySizeRange != 0 ? random.nextInt(keySizeRange) : 0);
         // 固定 Key を追加するため、サイズを増やす
-        keyLength += 1;
+        //keyLength += 1;
         randomKey.setSize(keyLength);
         randomizeBytesNew(randomKey.getBytes(), 0, randomKey.getLength());
         int valueLength = minValueSize +
