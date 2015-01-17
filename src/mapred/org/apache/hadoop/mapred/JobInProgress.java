@@ -2517,15 +2517,6 @@ public class JobInProgress {
       Collection<TaskInProgress> tips, TaskTrackerStatus ttStatus,
       int numUniqueHosts,
       boolean removeFailedTip) {
-  	// ノードが保持するデータ量の表示
-//		LOG.info("trace Data");
-//		for (Integer i : data.keySet()) {
-//			LOG.info(i);
-//			Map<String, Long> map = data.get(i);
-//			for (String s: map.keySet()) {
-//				LOG.info(s + ", " + map.get(s));
-//			}
-//		}
   	// Map　タスクが終了した場合
   	if ((finishedMapTasks + failedMapTIPs) >= (numMapTasks)) {
   		if (first) {
@@ -2566,7 +2557,7 @@ public class JobInProgress {
   				long volume = 0;
   				Map<String, Long> taskData = data.get(assignedTask);
   				for (String nodeName : taskData.keySet()) {
-  					if (nodeName != assignedNode) {
+  					if (!nodeName.equals(assignedNode)) {
   						volume += taskData.get(nodeName);
   					}
   				}
