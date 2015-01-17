@@ -1935,10 +1935,10 @@ public class JobInProgress {
     
     // Map タスク数が TaskTracker 数より少ない場合
     // パーティション毎のデータ量が分からない状態で Reduce タスクを割り当てるため
-    if ((numMapTasks <= 8) && (finishedMapTasks + failedMapTIPs) < (numMapTasks)) {
-    	//LOG.info((finishedMapTasks + failedMapTIPs) + ", " + numMapTasks);
-    	return null;
-    }
+//    if ((numMapTasks <= 8) && (finishedMapTasks + failedMapTIPs) < (numMapTasks)) {
+//    	//LOG.info((finishedMapTasks + failedMapTIPs) + ", " + numMapTasks);
+//    	return null;
+//    }
 
     int  target = findNewReduceTask(tts, clusterSize, numUniqueHosts, 
                                     status.reduceProgress());
