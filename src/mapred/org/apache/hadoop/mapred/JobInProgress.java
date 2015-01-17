@@ -180,6 +180,9 @@ public class JobInProgress {
   private Map<String, Map<Integer, Map<String, Long>>> eachRackData = new HashMap<String, Map<Integer,Map<String,Long>>>();
   
   private boolean first = true;
+  
+  // 手法
+  private String method;
 
   // keep failedMaps, nonRunningReduces ordered by failure count to bias
   // scheduling toward failing tasks
@@ -804,6 +807,8 @@ public class JobInProgress {
           (conf.getFloat("mapred.reduce.slowstart.completed.maps", 
                          DEFAULT_COMPLETED_MAPS_PERCENT_FOR_REDUCE_SLOWSTART) * 
            numMapTasks));
+    
+    method = conf.get("mapred.reduce.method", "default");
     
     // ... use the same for estimating the total output of all maps
     resourceEstimator.setThreshhold(completedMapsForReduceSlowstart);
@@ -2525,6 +2530,7 @@ public class JobInProgress {
   	if ((finishedMapTasks + failedMapTIPs) >= (numMapTasks)) {
   		if (first) {
   			LOG.info("Trace");
+  			LOG.info(method);
       	// ノードが保持するデータ量の表示
   			LOG.info("Data");
   			for (Integer i : data.keySet()) {
@@ -2570,59 +2576,174 @@ public class JobInProgress {
   			first = false;
   		} 
   	}
-  	// 提案手法 (Rackを考慮)
-  	Map<String, Integer> planAssignList = maxRackAssignList();
-  	
-//  	LOG.info("trace maxRackAssignList");
-//  	for (String taskTracker : planAssignList.keySet()) {
-//  		LOG.info(taskTracker + ", " + planAssignList.get(taskTracker)); 
-//  	}
-  	
-
-//  	// 提案手法 (Rackを考慮しない)
-//  	Map<String, Integer> planAssignList = planAssignList();
-  	// 既存手法
-//  	Map<String, Integer> planAssignList = maxAssignList();
-  	if (planAssignList != null) {
-    	Integer assignPart = planAssignList.get(ttStatus.getTrackerName());
-    	if (assignPart != null) {
-  	    Iterator<TaskInProgress> iter = tips.iterator();
-  	    while (iter.hasNext()) {
-  	      TaskInProgress tip = iter.next();
-  	      
-  	      if (tip.getPartition() == assignPart) {
-  		      // Select a tip if
-  		      //   1. runnable   : still needs to be run and is not completed
-  		      //   2. ~running   : no other node is running it
-  		      //   3. earlier attempt failed : has not failed on this host
-  		      //                               and has failed on all the other hosts
-  		      // A TIP is removed from the list if 
-  		      // (1) this tip is scheduled
-  		      // (2) if the passed list is a level 0 (host) cache
-  		      // (3) when the TIP is non-schedulable (running, killed, complete)
-  		      if (tip.isRunnable() && !tip.isRunning()) {
-  		        // check if the tip has failed on this host
-  		        if (!tip.hasFailedOnMachine(ttStatus.getHost()) || 
-  		             tip.getNumberOfFailedMachines() >= numUniqueHosts) {
-  		          // check if the tip has failed on all the nodes
-  		          iter.remove();
-  		          assignedReduceTask.add(assignPart);
-  		          assignedTaskTracker.add(ttStatus.getTrackerName());
-  		          return tip;
-  		        } else if (removeFailedTip) { 
-  		          // the case where we want to remove a failed tip from the host cache
-  		          // point#3 in the TIP removal logic above
-  		          iter.remove();
-  		        }
-  		      } else {
-  		        // see point#3 in the comment above for TIP removal logic
-  		        iter.remove();
-  		      }	      	
-  	      }
-  	    }    		
+  	if (method.equals("existing")) {
+    	// 提案手法 (Rackを考慮)
+    	Map<String, Integer> planAssignList = maxRackAssignList();  	
+    	if (planAssignList != null) {
+      	Integer assignPart = planAssignList.get(ttStatus.getTrackerName());
+      	if (assignPart != null) {
+    	    Iterator<TaskInProgress> iter = tips.iterator();
+    	    while (iter.hasNext()) {
+    	      TaskInProgress tip = iter.next();
+    	      
+    	      if (tip.getPartition() == assignPart) {
+    		      // Select a tip if
+    		      //   1. runnable   : still needs to be run and is not completed
+    		      //   2. ~running   : no other node is running it
+    		      //   3. earlier attempt failed : has not failed on this host
+    		      //                               and has failed on all the other hosts
+    		      // A TIP is removed from the list if 
+    		      // (1) this tip is scheduled
+    		      // (2) if the passed list is a level 0 (host) cache
+    		      // (3) when the TIP is non-schedulable (running, killed, complete)
+    		      if (tip.isRunnable() && !tip.isRunning()) {
+    		        // check if the tip has failed on this host
+    		        if (!tip.hasFailedOnMachine(ttStatus.getHost()) || 
+    		             tip.getNumberOfFailedMachines() >= numUniqueHosts) {
+    		          // check if the tip has failed on all the nodes
+    		          iter.remove();
+    		          assignedReduceTask.add(assignPart);
+    		          assignedTaskTracker.add(ttStatus.getTrackerName());
+    		          return tip;
+    		        } else if (removeFailedTip) { 
+    		          // the case where we want to remove a failed tip from the host cache
+    		          // point#3 in the TIP removal logic above
+    		          iter.remove();
+    		        }
+    		      } else {
+    		        // see point#3 in the comment above for TIP removal logic
+    		        iter.remove();
+    		      }	      	
+    	      }
+    	    }    		
+      	}
     	}
+  	} else if (method.equals("proposal")) {
+  		// 提案手法 (Rackを考慮しない)
+  		Map<String, Integer> planAssignList = planAssignList();
+    	if (planAssignList != null) {
+      	Integer assignPart = planAssignList.get(ttStatus.getTrackerName());
+      	if (assignPart != null) {
+    	    Iterator<TaskInProgress> iter = tips.iterator();
+    	    while (iter.hasNext()) {
+    	      TaskInProgress tip = iter.next();
+    	      
+    	      if (tip.getPartition() == assignPart) {
+    		      // Select a tip if
+    		      //   1. runnable   : still needs to be run and is not completed
+    		      //   2. ~running   : no other node is running it
+    		      //   3. earlier attempt failed : has not failed on this host
+    		      //                               and has failed on all the other hosts
+    		      // A TIP is removed from the list if 
+    		      // (1) this tip is scheduled
+    		      // (2) if the passed list is a level 0 (host) cache
+    		      // (3) when the TIP is non-schedulable (running, killed, complete)
+    		      if (tip.isRunnable() && !tip.isRunning()) {
+    		        // check if the tip has failed on this host
+    		        if (!tip.hasFailedOnMachine(ttStatus.getHost()) || 
+    		             tip.getNumberOfFailedMachines() >= numUniqueHosts) {
+    		          // check if the tip has failed on all the nodes
+    		          iter.remove();
+    		          assignedReduceTask.add(assignPart);
+    		          assignedTaskTracker.add(ttStatus.getTrackerName());
+    		          return tip;
+    		        } else if (removeFailedTip) { 
+    		          // the case where we want to remove a failed tip from the host cache
+    		          // point#3 in the TIP removal logic above
+    		          iter.remove();
+    		        }
+    		      } else {
+    		        // see point#3 in the comment above for TIP removal logic
+    		        iter.remove();
+    		      }	      	
+    	      }
+    	    }    		
+      	}
+    	}
+  	} else if (method.equals("default")) {
+      Iterator<TaskInProgress> iter = tips.iterator();  
+      while (iter.hasNext()) {
+        TaskInProgress tip = iter.next();
+
+        // Select a tip if
+        //   1. runnable   : still needs to be run and is not completed
+        //   2. ~running   : no other node is running it
+        //   3. earlier attempt failed : has not failed on this host
+        //                               and has failed on all the other hosts
+        // A TIP is removed from the list if 
+        // (1) this tip is scheduled
+        // (2) if the passed list is a level 0 (host) cache
+        // (3) when the TIP is non-schedulable (running, killed, complete)
+        if (tip.isRunnable() && !tip.isRunning()) {
+          // check if the tip has failed on this host
+          if (!tip.hasFailedOnMachine(ttStatus.getHost()) || 
+               tip.getNumberOfFailedMachines() >= numUniqueHosts) {
+            // check if the tip has failed on all the nodes
+            iter.remove();
+            return tip;
+          } else if (removeFailedTip) { 
+            // the case where we want to remove a failed tip from the host cache
+            // point#3 in the TIP removal logic above
+            iter.remove();
+          }
+        } else {
+          // see point#3 in the comment above for TIP removal logic
+          iter.remove();
+        }
+      }
   	}
-    return null;
+  	return null;
+//  	
+////  	LOG.info("trace maxRackAssignList");
+////  	for (String taskTracker : planAssignList.keySet()) {
+////  		LOG.info(taskTracker + ", " + planAssignList.get(taskTracker)); 
+////  	}
+//  	
+//
+////  	// 提案手法 (Rackを考慮しない)
+////  	Map<String, Integer> planAssignList = planAssignList();
+//  	// 既存手法
+////  	Map<String, Integer> planAssignList = maxAssignList();
+//  	if (planAssignList != null) {
+//    	Integer assignPart = planAssignList.get(ttStatus.getTrackerName());
+//    	if (assignPart != null) {
+//  	    Iterator<TaskInProgress> iter = tips.iterator();
+//  	    while (iter.hasNext()) {
+//  	      TaskInProgress tip = iter.next();
+//  	      
+//  	      if (tip.getPartition() == assignPart) {
+//  		      // Select a tip if
+//  		      //   1. runnable   : still needs to be run and is not completed
+//  		      //   2. ~running   : no other node is running it
+//  		      //   3. earlier attempt failed : has not failed on this host
+//  		      //                               and has failed on all the other hosts
+//  		      // A TIP is removed from the list if 
+//  		      // (1) this tip is scheduled
+//  		      // (2) if the passed list is a level 0 (host) cache
+//  		      // (3) when the TIP is non-schedulable (running, killed, complete)
+//  		      if (tip.isRunnable() && !tip.isRunning()) {
+//  		        // check if the tip has failed on this host
+//  		        if (!tip.hasFailedOnMachine(ttStatus.getHost()) || 
+//  		             tip.getNumberOfFailedMachines() >= numUniqueHosts) {
+//  		          // check if the tip has failed on all the nodes
+//  		          iter.remove();
+//  		          assignedReduceTask.add(assignPart);
+//  		          assignedTaskTracker.add(ttStatus.getTrackerName());
+//  		          return tip;
+//  		        } else if (removeFailedTip) { 
+//  		          // the case where we want to remove a failed tip from the host cache
+//  		          // point#3 in the TIP removal logic above
+//  		          iter.remove();
+//  		        }
+//  		      } else {
+//  		        // see point#3 in the comment above for TIP removal logic
+//  		        iter.remove();
+//  		      }	      	
+//  	      }
+//  	    }    		
+//    	}
+//  	}
+//    return null;
   }
 /*
   private synchronized TaskInProgress findReduceTaskFromList(
@@ -2991,8 +3112,9 @@ public class JobInProgress {
 
     // 1. check for a never-executed reduce tip
     // reducers don't have a cache and so pass -1 to explicitly call that out
-   //tip = findTaskFromList(nonRunningReduces, tts, numUniqueHosts, false);
-   tip = findReduceTaskFromList(nonRunningReduces, tts, numUniqueHosts, false);
+//    tip = findTaskFromList(nonRunningReduces, tts, numUniqueHosts, false);
+    	
+    tip = findReduceTaskFromList(nonRunningReduces, tts, numUniqueHosts, false);    	
    
     if (tip != null) {
       scheduleReduce(tip);
