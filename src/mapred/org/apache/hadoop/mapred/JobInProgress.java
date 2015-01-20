@@ -2635,7 +2635,7 @@ public class JobInProgress {
       }
   	}
   	// Map　タスクが終了した場合
-  	if ((finishedMapTasks + failedMapTIPs) >= (numMapTasks)) {
+  	if ((finishedMapTasks + failedMapTIPs) >= (numMapTasks) && (assignedReduceTask.size() == conf.getNumReduceTasks())) {
   		if (first) {
   			LOG.info("Trace");
   			LOG.info(method);
