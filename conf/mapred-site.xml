@@ -42,6 +42,6 @@
   
   <property>
     <name>mapred.reduce.method</name>
-    <value>existing</value>
+    <value>proposal</value>
   </property>
 </configuration>

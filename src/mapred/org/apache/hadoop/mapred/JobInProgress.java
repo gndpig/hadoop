@@ -2517,56 +2517,7 @@ public class JobInProgress {
       Collection<TaskInProgress> tips, TaskTrackerStatus ttStatus,
       int numUniqueHosts,
       boolean removeFailedTip) {
-  	// Map　タスクが終了した場合
-  	if ((finishedMapTasks + failedMapTIPs) >= (numMapTasks)) {
-  		if (first) {
-  			LOG.info("Trace");
-  			LOG.info(method);
-      	// ノードが保持するデータ量の表示
-  			LOG.info("Data");
-  			for (Integer i : data.keySet()) {
-  				LOG.info(i);
-  				Map<String, Long> map = data.get(i);
-  				for (String s: map.keySet()) {
-  					LOG.info(s + ", " + map.get(s));
-  				}
-  			} 
-  			
-  			LOG.info("eachRackData");
-  			for (String location : eachRackData.keySet()) {
-  				LOG.info(location);
-  				Map<Integer, Map<String, Long>> rackData = eachRackData.get(location);
-  				for (Integer part : rackData.keySet()) {
-  					Map<String, Long> taskData = rackData.get(part);
-  					for (String taskTracker : taskData.keySet()) {
-  						LOG.info(taskTracker + ", " + taskData.get(taskTracker));
-  					}
-  				}
-  			}
-  			
-  			LOG.info("assigned list");
-  			for (int i = 0; i < conf.getNumReduceTasks(); i++) {
-  				LOG.info(assignedReduceTask.get(i) + ", " + assignedTaskTracker.get(i));
-  			}
-  			
-  			LOG.info("Transferred data");
-  			for (int i = 0; i < conf.getNumReduceTasks(); i++) {
-  				Integer assignedTask = assignedReduceTask.get(i);
-  				String assignedNode = assignedTaskTracker.get(i);
-  				// データ転送量
-  				long volume = 0;
-  				Map<String, Long> taskData = data.get(assignedTask);
-  				for (String nodeName : taskData.keySet()) {
-  					if (!nodeName.equals(assignedNode)) {
-  						volume += taskData.get(nodeName);
-  					}
-  				}
-  				LOG.info(assignedTask + ", " + volume);
-  			}
-  			
-  			first = false;
-  		} 
-  	}
+
   	if (method.equals("existing")) {
     	// 提案手法 (Rackを考慮)
     	Map<String, Integer> planAssignList = maxRackAssignList();  	
@@ -2683,6 +2634,57 @@ public class JobInProgress {
         }
       }
   	}
+  	// Map　タスクが終了した場合
+  	if ((finishedMapTasks + failedMapTIPs) >= (numMapTasks)) {
+  		if (first) {
+  			LOG.info("Trace");
+  			LOG.info(method);
+      	// ノードが保持するデータ量の表示
+  			LOG.info("Data");
+  			for (Integer i : data.keySet()) {
+  				LOG.info(i);
+  				Map<String, Long> map = data.get(i);
+  				for (String s: map.keySet()) {
+  					LOG.info(s + ", " + map.get(s));
+  				}
+  			} 
+  			
+  			LOG.info("eachRackData");
+  			for (String location : eachRackData.keySet()) {
+  				LOG.info(location);
+  				Map<Integer, Map<String, Long>> rackData = eachRackData.get(location);
+  				for (Integer part : rackData.keySet()) {
+  					Map<String, Long> taskData = rackData.get(part);
+  					for (String taskTracker : taskData.keySet()) {
+  						LOG.info(taskTracker + ", " + taskData.get(taskTracker));
+  					}
+  				}
+  			}
+  			
+  			LOG.info("assigned list");
+  			for (int i = 0; i < conf.getNumReduceTasks(); i++) {
+  				LOG.info(assignedReduceTask.get(i) + ", " + assignedTaskTracker.get(i));
+  			}
+  			
+  			LOG.info("Transferred data");
+  			for (int i = 0; i < assignedReduceTask.size(); i++) {
+  				Integer assignedTask = assignedReduceTask.get(i);
+  				String assignedNode = assignedTaskTracker.get(i);
+  				// データ転送量
+  				long volume = 0;
+  				Map<String, Long> taskData = data.get(assignedTask);
+  				for (String nodeName : taskData.keySet()) {
+  					if (!nodeName.equals(assignedNode)) {
+  						volume += taskData.get(nodeName);
+  					}
+  				}
+  				LOG.info(assignedTask + ", " + volume);
+  			}
+  			
+  			first = false;
+  		} 
+  	}  	
+  	
   	return null;
 //  	
 ////  	LOG.info("trace maxRackAssignList");
@@ -2700,7 +2702,7 @@ public class JobInProgress {
 //    	if (assignPart != null) {
 //  	    Iterator<TaskInProgress> iter = tips.iterator();
 //  	    while (iter.hasNext()) {
-//  	      TaskInProgress tip = iter.next();
+//  	      TaskInProgress tip = iter.next();	A	
 //  	      
 //  	      if (tip.getPartition() == assignPart) {
 //  		      // Select a tip if
@@ -4217,9 +4219,8 @@ public class JobInProgress {
   }
   
 	public synchronized Map<Integer, Map<String, Long>> calculateData() {
-		Map<Integer, Map<String, Long>> result = new HashMap<Integer, Map<String,Long>>();
-		maxAndPartition = new HashMap<Integer, Long>();
-//		Map<Integer, Integer> maxAndPartition = new HashMap<Integer, Integer>();
+		Map<Integer, Map<String, Long>> result = new TreeMap<Integer, Map<String,Long>>();
+		maxAndPartition = new TreeMap<Integer, Long>();
 		for (Integer part : data.keySet()) {
 			if (assignedReduceTask.contains(part)) {
 				continue;
@@ -4262,8 +4263,7 @@ public class JobInProgress {
 				@Override
 				public int compare(Entry<String, Long> entry1, Entry<String, Long> entry2) {
 					return ((Long)entry1.getValue()).compareTo((Long)entry2.getValue());
-				}
-				
+				}				
 			});
       for (Entry<String, Long> s : entries) {
       	partitionResult.put(s.getKey(), s.getValue());
@@ -4292,24 +4292,24 @@ public class JobInProgress {
 		// ソートした転送データ
 		Map<Integer, Map<String, Long>> sortCalculateData = sortCalculateData();
 		// ソートした転送量データのデバッグ
-//		LOG.info("trace sortCalculateData");
-//		for (Integer i : sortCalculateData.keySet()) {
-//			LOG.info(i);
-//			Map<String, Long> map = sortCalculateData.get(i);
-//			for (String s: map.keySet()) {
-//				LOG.info(s + ", " + map.get(s));
-//			}
-//		}
+		LOG.info("trace sortCalculateData");
+		for (Integer i : sortCalculateData.keySet()) {
+			LOG.info(i);
+			Map<String, Long> map = sortCalculateData.get(i);
+			for (String s: map.keySet()) {
+				LOG.info(s + ", " + map.get(s));
+			}
+		}
 		// データ転送量が多い順でソートしたタスクリスト
 		List<Map.Entry<Integer, Long>> sortMaxAndPartitionList = sortMaxAndPartitionList();
-//		LOG.info("create Plan Assign List");
+		LOG.info("create Plan Assign List");
 		for (Entry<Integer, Long> sortMaxAndPartition : sortMaxAndPartitionList) {
 			Map<String, Long> partitionData = sortCalculateData.get(sortMaxAndPartition.getKey());
 			if (partitionData != null) {
 				for (String taskTracker : partitionData.keySet()) {
 	    		if (!planAssignList.containsKey(taskTracker)) {
 	    			planAssignList.put(taskTracker, sortMaxAndPartition.getKey());
-	    			//LOG.info(taskTracker + ", " + sortMaxAndPartition.getKey());
+	    			LOG.info(taskTracker + ", " + sortMaxAndPartition.getKey());
 	    			break;
 	    		}
 				}					
