@@ -584,8 +584,7 @@ class MapTask extends Task {
       numPartitions = conf.getNumReduceTasks();
       if (numPartitions > 0) {
         partitioner = (Partitioner<K,V>)
-            ReflectionUtils.newInstance(TotalOrderPartitioner.class, conf);
-//        ReflectionUtils.newInstance(conf.getPartitionerClass(), conf);
+          ReflectionUtils.newInstance(conf.getPartitionerClass(), conf);
       } else {
         partitioner = new Partitioner<K,V>() {
           @Override
