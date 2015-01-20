@@ -1940,8 +1940,7 @@ public class JobInProgress {
     
     // Map タスク数が TaskTracker 数より少ない場合
     // パーティション毎のデータ量が分からない状態で Reduce タスクを割り当てるため
-//    if ((numMapTasks <= 8) && (finishedMapTasks + failedMapTIPs) < (numMapTasks)) {
-    if ((numMapTasks <= 8) && (finishedMapTasks + failedMapTIPs) < (2)) {
+    if ((numMapTasks <= 8) && (finishedMapTasks + failedMapTIPs) < (numMapTasks)) {
     	//LOG.info((finishedMapTasks + failedMapTIPs) + ", " + numMapTasks);
     	return null;
     }
@@ -4231,11 +4230,6 @@ public class JobInProgress {
 			Map<String, Long> partitionResult = new TreeMap<String, Long>();
 			Map<String, Long> partitionData = data.get(part);
 			
-			if (partitionData.size() <= 1) {
-				
-			} else {
-				
-			}
 			for (String taskTrackerName : partitionData.keySet()) {
 				if (assignedTaskTracker.contains(taskTrackerName)) {
 					continue;
