@@ -64,6 +64,7 @@ import org.apache.hadoop.io.serializer.Serializer;
 import org.apache.hadoop.mapred.IFile.Writer;
 import org.apache.hadoop.mapred.Merger.Segment;
 import org.apache.hadoop.mapred.SortedRanges.SkipRangeIterator;
+import org.apache.hadoop.mapred.lib.TotalOrderPartitioner;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.mapreduce.split.JobSplit.TaskSplitIndex;
 import org.apache.hadoop.util.IndexedSortable;
@@ -583,7 +584,8 @@ class MapTask extends Task {
       numPartitions = conf.getNumReduceTasks();
       if (numPartitions > 0) {
         partitioner = (Partitioner<K,V>)
-          ReflectionUtils.newInstance(conf.getPartitionerClass(), conf);
+            ReflectionUtils.newInstance(TotalOrderPartitioner.class, conf);
+//        ReflectionUtils.newInstance(conf.getPartitionerClass(), conf);
       } else {
         partitioner = new Partitioner<K,V>() {
           @Override
