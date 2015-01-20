@@ -1941,9 +1941,10 @@ public class JobInProgress {
     // Map タスク数が TaskTracker 数より少ない場合
     // パーティション毎のデータ量が分からない状態で Reduce タスクを割り当てるため
 //    if ((numMapTasks <= 8) && (finishedMapTasks + failedMapTIPs) < (numMapTasks)) {
-//    	//LOG.info((finishedMapTasks + failedMapTIPs) + ", " + numMapTasks);
-//    	return null;
-//    }
+    if ((numMapTasks <= 8) && (finishedMapTasks + failedMapTIPs) < (2)) {
+    	//LOG.info((finishedMapTasks + failedMapTIPs) + ", " + numMapTasks);
+    	return null;
+    }
 
     int  target = findNewReduceTask(tts, clusterSize, numUniqueHosts, 
                                     status.reduceProgress());
@@ -2662,12 +2663,12 @@ public class JobInProgress {
   			}
   			
   			LOG.info("assigned list");
-  			for (int i = 0; i < conf.getNumReduceTasks(); i++) {
+  			for (int i = 0; i < assignedReduceTask.size(); i++) {
   				LOG.info(assignedReduceTask.get(i) + ", " + assignedTaskTracker.get(i));
   			}
   			
   			LOG.info("Transferred data");
-  			for (int i = 0; i < assignedReduceTask.size(); i++) {
+  			for (int i = 0; i < conf.getNumReduceTasks(); i++) {
   				Integer assignedTask = assignedReduceTask.get(i);
   				String assignedNode = assignedTaskTracker.get(i);
   				// データ転送量
@@ -4230,6 +4231,11 @@ public class JobInProgress {
 			Map<String, Long> partitionResult = new TreeMap<String, Long>();
 			Map<String, Long> partitionData = data.get(part);
 			
+			if (partitionData.size() <= 1) {
+				
+			} else {
+				
+			}
 			for (String taskTrackerName : partitionData.keySet()) {
 				if (assignedTaskTracker.contains(taskTrackerName)) {
 					continue;
@@ -4292,24 +4298,24 @@ public class JobInProgress {
 		// ソートした転送データ
 		Map<Integer, Map<String, Long>> sortCalculateData = sortCalculateData();
 		// ソートした転送量データのデバッグ
-		LOG.info("trace sortCalculateData");
-		for (Integer i : sortCalculateData.keySet()) {
-			LOG.info(i);
-			Map<String, Long> map = sortCalculateData.get(i);
-			for (String s: map.keySet()) {
-				LOG.info(s + ", " + map.get(s));
-			}
-		}
+//		LOG.info("trace sortCalculateData");
+//		for (Integer i : sortCalculateData.keySet()) {
+//			LOG.info(i);
+//			Map<String, Long> map = sortCalculateData.get(i);
+//			for (String s: map.keySet()) {
+//				LOG.info(s + ", " + map.get(s));
+//			}
+//		}
 		// データ転送量が多い順でソートしたタスクリスト
 		List<Map.Entry<Integer, Long>> sortMaxAndPartitionList = sortMaxAndPartitionList();
-		LOG.info("create Plan Assign List");
+//		LOG.info("create Plan Assign List");
 		for (Entry<Integer, Long> sortMaxAndPartition : sortMaxAndPartitionList) {
 			Map<String, Long> partitionData = sortCalculateData.get(sortMaxAndPartition.getKey());
 			if (partitionData != null) {
 				for (String taskTracker : partitionData.keySet()) {
 	    		if (!planAssignList.containsKey(taskTracker)) {
 	    			planAssignList.put(taskTracker, sortMaxAndPartition.getKey());
-	    			LOG.info(taskTracker + ", " + sortMaxAndPartition.getKey());
+//	    			LOG.info(taskTracker + ", " + sortMaxAndPartition.getKey());
 	    			break;
 	    		}
 				}					
