@@ -132,10 +132,11 @@ public class RandomTextWriter extends Configured implements Tool {
       while (numBytesToWrite > 0) {
         // Generate the key/value 
         int noWordsKey = minWordsInKey + 
-          (wordsInKeyRange != 0 ? random.nextInt(wordsInKeyRange) : 0);
+            (wordsInKeyRange != 0 ? random.nextInt(wordsInKeyRange) : 0);
         int noWordsValue = minWordsInValue + 
           (wordsInValueRange != 0 ? random.nextInt(wordsInValueRange) : 0);
-        Text keyWords = generateSentence(noWordsKey);
+//        Text keyWords = generateSentence(noWordsKey);
+        Text keyWords = newGenerateSentence(noWordsKey);
         Text valueWords = generateSentence(noWordsValue);
         
         // Write the sentence 
@@ -164,7 +165,20 @@ public class RandomTextWriter extends Configured implements Tool {
       }
       return new Text(sentence.toString());
     }
+    
+    private Text newGenerateSentence(int noWords) {
+      StringBuffer sentence = new StringBuffer();
+      String space = " ";
+      for (int i=0; i < 1; ++i) {
+        sentence.append(newWords[random.nextInt(newWords.length)]);
+        sentence.append(space);
+      }
+      return new Text(sentence.toString());
+    }
   }
+
+  
+  
   
   /**
    * This is the main routine for launching a distributed random write job.
@@ -755,4 +769,24 @@ public class RandomTextWriter extends Configured implements Tool {
                                    "unpatched", "hypochondriacism",
                                    "critically", "cheesecutter",
                                   };
+  
+
+  /**
+   * A random list of 100 words from /usr/share/dict/words
+   */
+  private static String[] newWords = {
+    "apple", "blue",
+    "cat", "drink",
+    "egg", "family",
+    "grape", "hello",
+    "illust", "japan",
+    "king", "land",
+    "man", "new",
+    "oppotunity", "pararel",
+    "apple", "apple",
+    "apple", "blue",
+    "blue", "japan",
+    "japan", "family",
+    "king", "land"
+  };
 }
