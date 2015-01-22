@@ -93,6 +93,8 @@ public class RandomTextWriter extends Configured implements Tool {
    * User counters
    */
   static enum Counters { RECORDS_WRITTEN, BYTES_WRITTEN }
+  
+  static String[] list;
 
   static class Map extends MapReduceBase 
     implements Mapper<Text, Text, Text, Text> {
@@ -120,6 +122,10 @@ public class RandomTextWriter extends Configured implements Tool {
       wordsInValueRange = 
         (job.getInt("test.randomtextwrite.max_words_value", 100) - 
          minWordsInValue);
+      list = new String[5];
+      for (int i = 0; i < list.length; i++) {
+      	list[i] = newWords[random.nextInt(newWords.length)];
+      }
     }
     
     /**
@@ -170,7 +176,8 @@ public class RandomTextWriter extends Configured implements Tool {
       StringBuffer sentence = new StringBuffer();
       String space = " ";
       for (int i=0; i < 1; ++i) {
-        sentence.append(newWords[random.nextInt(newWords.length)]);
+//        sentence.append(newWords[random.nextInt(newWords.length)]);
+        sentence.append(list[random.nextInt(list.length)]);
         sentence.append(space);
       }
       return new Text(sentence.toString());
@@ -771,9 +778,6 @@ public class RandomTextWriter extends Configured implements Tool {
                                   };
   
 
-  /**
-   * A random list of 100 words from /usr/share/dict/words
-   */
   private static String[] newWords = {
     "apple", "blue",
     "cat", "drink",
@@ -789,4 +793,15 @@ public class RandomTextWriter extends Configured implements Tool {
     "japan", "family",
     "king", "land"
   };
+  
+  private static String[] lists = {
+    "apple", "blue",
+    "cat", "drink",
+    "egg", "family",
+    "grape", "hello",
+    "illust", "japan",
+    "king", "land",
+    "man", "new",
+    "oppotunity", "pararel",
+  };  
 }
