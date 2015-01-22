@@ -2622,6 +2622,8 @@ public class JobInProgress {
                tip.getNumberOfFailedMachines() >= numUniqueHosts) {
             // check if the tip has failed on all the nodes
             iter.remove();
+	          assignedReduceTask.add(tip.getPartition());
+	          assignedTaskTracker.add(ttStatus.getTrackerName());
             return tip;
           } else if (removeFailedTip) { 
             // the case where we want to remove a failed tip from the host cache
