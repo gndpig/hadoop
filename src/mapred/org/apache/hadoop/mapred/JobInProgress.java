@@ -4227,8 +4227,8 @@ public class JobInProgress {
 			if (assignedReduceTask.contains(part)) {
 				continue;
 			}
-//			long min = Integer.MAX_VALUE;
-			long max = 0;
+			long min = Integer.MAX_VALUE;
+//			long max = 0;
 
 			Map<String, Long> partitionResult = new TreeMap<String, Long>();
 			Map<String, Long> partitionData = data.get(part);
@@ -4243,12 +4243,12 @@ public class JobInProgress {
 						dataVolume += partitionData.get(taskTrackerName1);
 					}
 				}
-				if (max < dataVolume) {
-					max = dataVolume;
+				if (min < dataVolume) {
+					min = dataVolume;
 				}
 				partitionResult.put(taskTrackerName, dataVolume);
 			}
-			maxAndPartition.put(part, max);
+			maxAndPartition.put(part, min);
 			result.put(part, partitionResult);
 		}
 		return result;
@@ -4282,7 +4282,7 @@ public class JobInProgress {
 		Collections.sort(entries, new Comparator<Map.Entry<Integer, Long>>() {
 			@Override
 			public int compare(Entry<Integer, Long> entry1, Entry<Integer, Long> entry2) {
-				return ((Long)entry2.getValue()).compareTo((Long)entry1.getValue());
+				return ((Long)entry1.getValue()).compareTo((Long)entry2.getValue());
 			}
 		});		
 		return entries;
