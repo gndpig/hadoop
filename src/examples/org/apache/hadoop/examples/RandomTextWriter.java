@@ -122,9 +122,10 @@ public class RandomTextWriter extends Configured implements Tool {
       wordsInValueRange = 
         (job.getInt("test.randomtextwrite.max_words_value", 100) - 
          minWordsInValue);
-      list = new String[5];
+      list = new String[8];
       for (int i = 0; i < list.length; i++) {
-      	list[i] = newWords[random.nextInt(newWords.length)];
+//      	list[i] = newWords[random.nextInt(newWords.length)];
+      	list[i] = words[random.nextInt(words.length)];
       }
     }
     
