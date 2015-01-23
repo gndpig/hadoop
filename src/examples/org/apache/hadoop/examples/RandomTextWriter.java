@@ -787,11 +787,6 @@ public class RandomTextWriter extends Configured implements Tool {
     "king", "land",
     "man", "new",
     "oppotunity", "pararel",
-    "apple", "apple",
-    "apple", "blue",
-    "blue", "japan",
-    "japan", "family",
-    "king", "land"
   };
   
   private static String[] lists = {
