@@ -122,11 +122,11 @@ public class RandomTextWriter extends Configured implements Tool {
       wordsInValueRange = 
         (job.getInt("test.randomtextwrite.max_words_value", 100) - 
          minWordsInValue);
-      list = new String[6];
-      for (int i = 0; i < list.length; i++) {
+ //     list = new String[6];
+  //    for (int i = 0; i < list.length; i++) {
 //      	list[i] = newWords[random.nextInt(newWords.length)];
-      	list[i] = words[random.nextInt(words.length)];
-      }
+ //     	list[i] = words[random.nextInt(words.length)];
+    //  }
     }
     
     /**
@@ -142,8 +142,8 @@ public class RandomTextWriter extends Configured implements Tool {
             (wordsInKeyRange != 0 ? random.nextInt(wordsInKeyRange) : 0);
         int noWordsValue = minWordsInValue + 
           (wordsInValueRange != 0 ? random.nextInt(wordsInValueRange) : 0);
-//        Text keyWords = generateSentence(noWordsKey);
-        Text keyWords = newGenerateSentence(noWordsKey);
+        Text keyWords = generateSentence(noWordsKey);
+//        Text keyWords = newGenerateSentence(noWordsKey);
         Text valueWords = generateSentence(noWordsValue);
         
         // Write the sentence 
