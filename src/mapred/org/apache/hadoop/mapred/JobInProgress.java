@@ -177,9 +177,15 @@ public class JobInProgress {
   // タスクごとの一番大きいパーティション
   private Map<Integer, Long> maxPartition;
   
+  // ラック毎のパーティション
   private Map<String, Map<Integer, Map<String, Long>>> eachRackData = new HashMap<String, Map<Integer,Map<String,Long>>>();
   
+  // タスク毎のラック毎に合計したデータ量
+  private Map<Integer, Long> maxRackList;
+  
   private boolean first = true;
+  
+  private boolean first_time = true;
   
   // 手法
   private String method;
@@ -2561,8 +2567,15 @@ public class JobInProgress {
       	}
     	}
   	} else if (method.equals("proposal")) {
+  		long start = System.currentTimeMillis();
   		// 提案手法 (Rackを考慮しない)
   		Map<String, Integer> planAssignList = planAssignList();
+  		long finish = System.currentTimeMillis();
+  		if (first_time) {
+  			LOG.info("Time");
+  			LOG.info(finish - start);
+  			first_time = false;
+  		}
     	if (planAssignList != null) {
       	Integer assignPart = planAssignList.get(ttStatus.getTrackerName());
       	if (assignPart != null) {
@@ -4287,6 +4300,7 @@ public class JobInProgress {
 		});		
 		return entries;
 	}
+	
 
 	// 提案手法
 	public synchronized Map<String, Integer> planAssignList() {
@@ -4319,6 +4333,11 @@ public class JobInProgress {
 			}
 		}
 		return planAssignList;
+	}
+	
+	// 既存手法
+	public synchronized Integer selectRack() {
+		return 0;
 	}
 
 	// 既存手法
@@ -4404,7 +4423,7 @@ public class JobInProgress {
 			for (String location : eachRackData.keySet()) {
 				Map<Integer, Map<String, Long>> rackData = eachRackData.get(location);
 				Map<String, Long> taskData = rackData.get(i);
-				
+								
 				// データ量
 				long volume = 0;
 				
