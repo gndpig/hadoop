@@ -181,7 +181,7 @@ public class JobInProgress {
   private Map<String, Map<Integer, Map<String, Long>>> eachRackData = new HashMap<String, Map<Integer,Map<String,Long>>>();
   
   // タスク毎のラック毎に合計したデータ量
-  private Map<Integer, Long> maxRackList;
+//  private Map<Integer, Long> maxRackList;
   
   private boolean first = true;
   
@@ -2567,10 +2567,10 @@ public class JobInProgress {
       	}
     	}
   	} else if (method.equals("proposal")) {
-  		long start = System.currentTimeMillis();
+  		long start = System.nanoTime();
   		// 提案手法 (Rackを考慮しない)
   		Map<String, Integer> planAssignList = planAssignList();
-  		long finish = System.currentTimeMillis();
+  		long finish = System.nanoTime();
   		if (first_time) {
   			LOG.info("Time");
   			LOG.info(finish - start);
@@ -4335,10 +4335,6 @@ public class JobInProgress {
 		return planAssignList;
 	}
 	
-	// 既存手法
-	public synchronized Integer selectRack() {
-		return 0;
-	}
 
 	// 既存手法
 	public synchronized Map<String, Integer> maxAssignList() {
